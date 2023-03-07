@@ -15,8 +15,11 @@ function App() {
   const [forwards, setForwards] = useState();
   const [defense, setDefense] = useState();
   const[goalie, setGoalie] = useState();
+
+  const [schedule, setSchedule] = useState();
   
   const[myTeam, setMyTeam] = useState();
+
   function getLogos() {
     var currentTeams = teams.filter(team => team.isActive === true);
 
@@ -35,10 +38,10 @@ function App() {
     return currentTeams;
   }
 
-  function getSchedule() {
+  function getSchedule(selectedTeam) {
     var teamID;
-    if(myTeam !== 'kraken') {
-      teamID = getTeamId(myTeam);
+    if(selectedTeam !== 'kraken') {
+      teamID = getTeamId(selectedTeam);
     }
     else {
       teamID = 55;
@@ -48,15 +51,53 @@ function App() {
         started, because of this, we need to have a start date variable which changes if the team is them since the rest
         of the teams potentially have preseason games at that time. */
     var startDate;
-    if(myTeam === 'sharks' || myTeam === 'predators') {
+    if(selectedTeam === 'sharks' || selectedTeam === 'predators') {
       startDate = '2022-10-07';
     }
     else {
       startDate = '2022-10-11';
     }
     axios.get(`https://statsapi.web.nhl.com/api/v1/schedule?teamId=${teamID}&startDate=${startDate}&endDate=2023-04-14`).then( res => {
-      console.log(res.data.dates); 
+      setSchedule(res.data.dates);
+      setRosterLoaded(true);
     })
+  }
+
+  function populateDays(date) {
+    var teamLogos = getLogos();
+    var schedule_day = date.toISOString().split('T')[0];
+
+    /*  We grab the day on the schedule that is the current day on the calendar, if it contains
+        the current day it'll return the index in the array, otherwise it'll give us -1, hence the
+        i > -1 conditional/ */
+    const i = schedule.findIndex(e => e.date === schedule_day);
+
+    if (i > -1) {      
+      /*  We check to see if the scheduled game today is home or away, since the game data given to us
+          only specifies the teams, we just check to see if the ID of the away team is ours, if it is then
+          it is a road game, if it isn't then it's a home game. */
+      var teamID;
+      if(myTeam !== 'kraken') {
+        teamID = getTeamId(myTeam);
+      }
+      else {
+        teamID = 55;
+      }
+
+      if(schedule[i].games[0].teams.away.team.id === teamID) {
+        const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.home.team.id);
+        console.log('schedule: ', schedule);
+        console.log('logos: ', teamLogos);
+        return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
+      }
+      else {
+        const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.away.team.id);
+
+        return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
+
+      }
+    }
+    else return;
   }
 
   function getRoster(team, whoseTeam) {
@@ -64,6 +105,7 @@ function App() {
     let teamName = teamArray[teamArray.length - 1];
     let currentRoster = jsonData[teamName];
     setMyTeam(teamName);
+
     if(whoseTeam === 'myteam') {
       delete currentRoster.forward[currentRoster.forward.length - 1];
       setForwards(currentRoster.forward);
@@ -73,9 +115,10 @@ function App() {
       
       delete currentRoster.goalie[currentRoster.goalie.length - 1];
       setGoalie(currentRoster.goalie);
-  
-      setRosterLoaded(true);
+
     }
+    getSchedule(teamName);
+
   }
 
   function numberWithCommas(x) {
@@ -183,9 +226,9 @@ function App() {
               minDate={new Date('2022-10-07')}
               maxDate={new Date('2023-04-15')}
               defaultValue={new Date('2022-10-07')}
-              minDetail='year'/>
-
-            <button onClick={getSchedule}>
+              minDetail='year'
+              tileContent={({ date }) => populateDays(date)}/>
+            <button onClick={simSeason}>
               Simulate a season
             </button>
           </div>
