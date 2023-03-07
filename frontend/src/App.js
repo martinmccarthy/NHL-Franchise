@@ -5,6 +5,7 @@ import './App.css';
 import {useState} from 'react';
 import axios from 'axios';
 import teams, { getTeamId } from "@nhl-api/teams";
+import Calendar from 'react-calendar';
 
 import jsonData from './Roster_JSON/teams.json'
 
@@ -177,9 +178,19 @@ function App() {
               <img onClick={() => getRoster(team, 'myteam')} width="100px" key={team.id} src={team.logo} alt={team.name}/>
             ))}
           </div> */}
-          <button onClick={getSchedule}>
-            Simulate a season
-          </button>
+          <div className="Season">
+            <Calendar 
+              minDate={new Date('2022-10-07')}
+              maxDate={new Date('2023-04-15')}
+              defaultValue={new Date('2022-10-07')}
+              minDetail='year'/>
+
+            <button onClick={getSchedule}>
+              Simulate a season
+            </button>
+          </div>
+
+         
         </div>
       )}
     </div>
