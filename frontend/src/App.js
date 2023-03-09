@@ -2,10 +2,12 @@
     I am lazy though so this will do for now. */
 
 import './App.css';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import axios from 'axios';
 import teams, { getTeamId } from "@nhl-api/teams";
 import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+
 
 import jsonData from './Roster_JSON/teams.json'
 
@@ -17,8 +19,12 @@ function App() {
   const[goalie, setGoalie] = useState();
 
   const [schedule, setSchedule] = useState();
-  
+  const [currentDate, setCurrentDate] = useState(new Date('2022-10-07'))
+  var tempDate = new Date('2022-10-07');
   const[myTeam, setMyTeam] = useState();
+
+  const[wins, setWins] = useState(0)
+  const[losses, setLosses] = useState(0);
 
   function getLogos() {
     var currentTeams = teams.filter(team => team.isActive === true);
@@ -60,44 +66,73 @@ function App() {
     axios.get(`https://statsapi.web.nhl.com/api/v1/schedule?teamId=${teamID}&startDate=${startDate}&endDate=2023-04-14`).then( res => {
       setSchedule(res.data.dates);
       setRosterLoaded(true);
-    })
+    });
   }
 
-  function populateDays(date) {
-    var teamLogos = getLogos();
-    var schedule_day = date.toISOString().split('T')[0];
+  function populateDays(date, view) {
+    if(view === 'month') {
+      var teamLogos = getLogos();
+      var schedule_day = date.toISOString().split('T')[0];
 
-    /*  We grab the day on the schedule that is the current day on the calendar, if it contains
-        the current day it'll return the index in the array, otherwise it'll give us -1, hence the
-        i > -1 conditional/ */
-    const i = schedule.findIndex(e => e.date === schedule_day);
+      /*  We grab the day on the schedule that is the current day on the calendar, if it contains
+          the current day it'll return the index in the array, otherwise it'll give us -1, hence the
+          i > -1 conditional/ */
+      const i = schedule.findIndex(e => e.date === schedule_day);
 
-    if (i > -1) {      
-      /*  We check to see if the scheduled game today is home or away, since the game data given to us
-          only specifies the teams, we just check to see if the ID of the away team is ours, if it is then
-          it is a road game, if it isn't then it's a home game. */
-      var teamID;
-      if(myTeam !== 'kraken') {
-        teamID = getTeamId(myTeam);
+      if (i > -1) {      
+        /*  We check to see if the scheduled game today is home or away, since the game data given to us
+            only specifies the teams, we just check to see if the ID of the away team is ours, if it is then
+            it is a road game, if it isn't then it's a home game. */
+        var teamID;
+        if(myTeam !== 'kraken') {
+          teamID = getTeamId(myTeam);
+        }
+        else {
+          teamID = 55;
+        }
+
+        if(schedule[i].games[0].teams.away.team.id === teamID) {
+          const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.home.team.id);
+          return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
+        }
+        else {
+          const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.away.team.id);
+          return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
+        }
       }
-      else {
-        teamID = 55;
-      }
-
-      if(schedule[i].games[0].teams.away.team.id === teamID) {
-        const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.home.team.id);
-        console.log('schedule: ', schedule);
-        console.log('logos: ', teamLogos);
-        return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
-      }
-      else {
-        const j = teamLogos.findIndex(e => e.id === schedule[i].games[0].teams.away.team.id);
-
-        return (<img width="50px" src={teamLogos[j].logo} alt={teamLogos[j].name}/>);
-
-      }
+      else return;
     }
-    else return;
+    return;
+  }
+
+  function tileDisabled({ date, view }) {
+    return date < currentDate;
+  }
+
+  function simulateToDate(date) {
+    let iterationDate = currentDate; 
+    let currentWins = wins;
+    let currentLosses = losses;
+
+    while(iterationDate < date) {
+      let tempDate = new Date((iterationDate).valueOf() + 1000*3600*24);
+      let tempDate2 = new Date((iterationDate).valueOf() - 1000*3600*24);
+      let schedule_string = tempDate2.toISOString().split('T')[0];
+      const i = schedule.findIndex(e => e.date === schedule_string);
+      console.log(i);
+      if(i > -1) {
+        if(Math.random() > .5) {
+          currentWins++;
+          setWins(currentWins);
+        }
+        else {
+          currentLosses++;
+          setLosses(currentLosses);
+        }
+      }
+      setCurrentDate(tempDate);
+      iterationDate = tempDate;
+    }
   }
 
   function getRoster(team, whoseTeam) {
@@ -115,10 +150,9 @@ function App() {
       
       delete currentRoster.goalie[currentRoster.goalie.length - 1];
       setGoalie(currentRoster.goalie);
-
     }
-    getSchedule(teamName);
 
+    getSchedule(teamName);
   }
 
   function numberWithCommas(x) {
@@ -129,16 +163,21 @@ function App() {
     return Math.round(capHits.reduce((prev, curr) => prev + curr) / capHits.length)
   }
 
-  function simSeason() {
 
-  }
-
+  /* This just takes the cap hits in the player data and makes them readable, the reason this is
+     necessary is because we're taking from the capfriendly website and the scraper returns an
+     odd data array. */
   function parseCapHit(player) {
     if(!player) return;
     let yearsLeft = Number(player[1].split(' ')[0]);
     var caphits = []
 
     for(var i = 8; i < (yearsLeft + 8); i++) {
+      /* The undefined here occurs because it can be the case where the capfriendly datatable
+         doesn't display all the data in the table because the contract is longer than the display,
+         in this case we just fill the array with the previous year's contract data based on how
+         many years they have left. They technically could have different cap hits at these times but
+         I personally don't want to go through and individually check every player to make sure. */
       if(player[i] === undefined) {
         caphits.push(caphits[caphits.length - 1]);
       }
@@ -148,7 +187,7 @@ function App() {
       }
     }
 
-    return numberWithCommas(averageCaphits(caphits));
+    return '$' + numberWithCommas(averageCaphits(caphits));
   }
 
   return (
@@ -225,15 +264,14 @@ function App() {
             <Calendar 
               minDate={new Date('2022-10-07')}
               maxDate={new Date('2023-04-15')}
-              defaultValue={new Date('2022-10-07')}
+              value={currentDate}
               minDetail='year'
-              tileContent={({ date }) => populateDays(date)}/>
-            <button onClick={simSeason}>
-              Simulate a season
-            </button>
+              tileContent={({ date, view }) => populateDays(date, view)}
+              onChange={simulateToDate}
+              tileDisabled={tileDisabled}
+            />
+            <p>Current Record: {wins}-{losses}</p>
           </div>
-
-         
         </div>
       )}
     </div>
