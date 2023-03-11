@@ -13,16 +13,29 @@ export function checkGameLocation(schedule, date, selectedTeam) {
 
 export function returnTeamID(selectedTeam) {
     var teamID;
-    if(selectedTeam !== 'kraken') {
-      teamID = getTeamId(selectedTeam);
-      if(selectedTeam === 'stars' || selectedTeam === 'flames')
-        teamID = teamID[0].id;
-      else if(selectedTeam === 'blues')
-        teamID = teamID[1].id;
+    if(selectedTeam !== 'kraken' && selectedTeam !== 'SEATTLE KRAKEN') {
+        teamID = getTeamId(selectedTeam);
+        if(selectedTeam === 'stars' || selectedTeam === 'flames')
+            teamID = teamID[0].id;
+        else if(selectedTeam === 'blues')
+            teamID = teamID[1].id;
     }
     else {
-      teamID = 55;
-    } 
-
+        teamID = 55;
+    }
     return teamID;
+}
+
+export function reorder(list, startIndex, endIndex){
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+  
+    return result;
+};
+
+export function removePlayer(roster, player) {
+    let spliceIndex = roster.findIndex(rosterPlayer => rosterPlayer === player);
+    roster.splice(spliceIndex, 1);
+    return roster;
 }
