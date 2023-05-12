@@ -1,23 +1,64 @@
 .App {
   text-align: center;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  background: linear-gradient(112.1deg, rgb(32, 38, 57) 11.4%, rgb(63, 76, 119) 70.2%);
+  height: fit-content;
+  color: #d6d6d6
 }
 
-.myTeamPlayers {
+h1 {
+  font-family: 'Archivo Black', sans-serif;
+}
+
+.title {
+  padding: 2em;
+}
+
+.preselectContainer {
+  height: 100vh;
+  display: inherit;
+  margin-left: 0;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  flex-wrap: wrap;
+}
+
+.iconContainer {
+  width: 100%;
+}
+
+.logoContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2em;
+  height: 100vh;
 }
 
 .logos {
-  display: grid;
-  height: 100%;
+  display: flex;
+  height: fit-content;
+  width: 90%;
   place-items: center;
   text-align: center;
+  background: linear-gradient(112.1deg, rgb(79, 81, 91) 11.4%, rgb(132, 147, 196) 70.2%);
+  border-radius: 4em;
+}
+
+.topPlayers {
+  list-style: none;
+  margin: .25em;
 }
 
 .icons{
   list-style: none;
 }
 .icons li{
-  height: 70px;
-  width: 70px;
+  height: 5em;
+  width: 5em;
   display: inline-block;
   margin: 0 10px;
   cursor: pointer;
@@ -33,18 +74,18 @@
   width: 100%;
   z-index: -1;
   border-radius: 10%;
-  background: linear-gradient(45deg, #4b4b4b, #d4d4d4);
   transition: all 0.3s ease-in;
 }
+
 .icons li:hover:before{
   transform: rotate(360deg);
   border-radius: 100%;
 }
 
 .imageContainer {
-  height: auto;
   position: relative;
 }
+
 .icons img {
   position: absolute;
   top: 100%;
@@ -62,11 +103,6 @@
 .tradingTeam {
 }
 
-.loaded {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 10px;
-}
 
 
 .container {
@@ -114,10 +150,11 @@
 }
 
 .myTeamTrading {
-  width: 50%;
+  width: 40%;
+
 }
 .opposingTeamTrading {
-  width: 50%;
+  width: 40%;
 }
 
 .tradePanel {
@@ -129,4 +166,84 @@
 
 .tradeExecute {
   width: 100%;
+}
+
+.button {
+  appearance: button;
+  background-color: #ffc720;
+  border: solid transparent;
+  border-radius: 16px;
+  border-width: 0 0 4px;
+  box-sizing: border-box;
+  color: #000000;
+  cursor: pointer;
+  display: inline-block;
+  font-family: din-round,sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  line-height: 20px;
+  margin: 0;
+  outline: none;
+  overflow: visible;
+  padding: 13px 16px;
+  text-align: center;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  transform: translateZ(0);
+  transition: filter .2s;
+  user-select: none;
+  -webkit-user-select: none;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.button:after {
+  background-clip: padding-box;
+  background-color: #ffda7c;
+  border: solid transparent;
+  border-radius: 16px;
+  border-width: 0 0 4px;
+  bottom: -4px;
+  content: "";
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: -1;
+}
+
+.button:main,
+.button:focus {
+  user-select: auto;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  -webkit-filter: brightness(1.1);
+}
+
+.button:disabled {
+  cursor: auto;
+}
+
+.playerOverall {
+  padding: 6px;
+}
+
+.buttonPadding {
+  margin-top: 15px;
+}
+
+.hoverAbove {
+  z-index: 1
+}
+.glow {
+  z-index:0;
+  transform: scale(1.10) translate(-50%, -50%);
+  -webkit-transform: scale(2) translate(-50%, -50%);
+  filter: brightness(0) invert(1) blur(10px);
+  -webkit-filter: brightness(0) invert(1) blur(10px);
+  opacity:1;
 }
