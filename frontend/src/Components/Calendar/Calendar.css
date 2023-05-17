@@ -1,0 +1,113 @@
+.calendar {
+    width: 100%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5em;
+    margin-top: 2em;
+  }
+  
+  .calendarHeader {
+    height: 10vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    font-weight: 600;
+  }
+  
+  .calendarBody {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .tableHeader {
+    height: 5vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  
+  .weekday {
+    width: 14.28%;
+    text-align: center;
+  }
+  
+  .tableContent {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  
+  .calendarDay {
+    width: 14.28%;
+    height: 10vh;
+    position: relative;
+    border: .1em solid #F0F0F5;
+    background: #C2C4D6;
+  }
+  
+  .calendarDay:hover {
+    background-color: rgba(0,0,0,.10);
+  }
+  
+  .calendarDay p {
+    position: absolute;
+    right: 10px;
+    color: #fefeff;
+    pointer-events: none;
+  }
+  
+  .current p {
+    color: #F0F0F5;
+    pointer-events: none;
+    font-weight: 700;
+  }
+  
+  .selected p {
+    color: #cc0000;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+.calendarImage img {
+    width: 3em;
+    pointer-events: none;
+    max-width: 3em;
+    min-width:1em;
+}
+.calendarImage {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.inactive {
+    background-color: rgba(163,166,194, .9);
+    z-index: 10;
+}
+
+
+.cal {
+    width: 100%;
+}
+
+.home-team {
+  background-color: #2980B9;
+}
+
+/* Away team */
+.away-team {
+  background-color: #1ABC9C;
+}

@@ -1,33 +1,21 @@
-.App {
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-  width: 100%;
-  background: linear-gradient(112.1deg, rgb(32, 38, 57) 11.4%, rgb(63, 76, 119) 70.2%);
-  height: fit-content;
-  color: #d6d6d6
-}
-
 h1 {
   font-family: 'Archivo Black', sans-serif;
 }
 
-.title {
-  padding: 2em;
+html, body { 
+  height: 100%;
 }
 
 .preselectContainer {
-  height: 100vh;
   display: inherit;
-  margin-left: 0;
+  margin-left: 1em;
   justify-content: center;
   align-items: center;
-  width: 80%;
+  width: 50%;
   flex-wrap: wrap;
+  color: #3d405b;
 }
 
-.iconContainer {
-  width: 100%;
-}
 
 .logoContainer {
   width: 100%;
@@ -35,17 +23,17 @@ h1 {
   align-items: center;
   justify-content: center;
   padding-bottom: 2em;
-  height: 100vh;
 }
 
 .logos {
   display: flex;
-  height: fit-content;
   width: 90%;
+  height: 80vh;
   place-items: center;
   text-align: center;
-  background: linear-gradient(112.1deg, rgb(79, 81, 91) 11.4%, rgb(132, 147, 196) 70.2%);
+  background: linear-gradient(112.1deg, #f2cc8f 11.4%, #e07a5f 70.2%);
   border-radius: 4em;
+  padding: 1em;
 }
 
 .topPlayers {
@@ -95,16 +83,6 @@ h1 {
   object-fit: contain;
 }
 
-.table {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.tradingTeam {
-}
-
-
-
 .container {
   display: flex;
   touch-action: none;
@@ -115,40 +93,6 @@ h1 {
   justify-items: center;
 }
 
-.dropzone {
-  flex: 1;
-  height: 100%;
-  border: 2px dashed rgba(0, 0, 0, 0.1);
-  border-radius: 1rem;
-  margin: 3px;
-}
-
-.dropzone.left {
-  margin-right: 10px;
-}
-
-.grid-item {
-  width: 200px;
-  height: 50px;
-  box-sizing: border-box;
-  padding: 0.5em;
-}
-
-.grid-item-content {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  background: #08e;
-  display: flex;
-  justify-content: center;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  align-items: center;
-  border-radius: 0.5em;
-  cursor: pointer;
-  user-select: none;
-}
-
 .myTeamTrading {
   width: 50%;
 }
@@ -156,75 +100,9 @@ h1 {
   width: 50%;
 }
 
-.tradePanel {
-  display: flex;
-  touch-action: none;
-  width: 100%;
-  height: 100%;
-}
 
 .tradeExecute {
   width: 100%;
-}
-
-.button {
-  appearance: button;
-  background-color: #ffc720;
-  border: solid transparent;
-  border-radius: 16px;
-  border-width: 0 0 4px;
-  box-sizing: border-box;
-  color: #000000;
-  cursor: pointer;
-  display: inline-block;
-  font-family: din-round,sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: .8px;
-  line-height: 20px;
-  margin: 0;
-  outline: none;
-  overflow: visible;
-  padding: 13px 16px;
-  text-align: center;
-  text-transform: uppercase;
-  touch-action: manipulation;
-  transform: translateZ(0);
-  transition: filter .2s;
-  user-select: none;
-  -webkit-user-select: none;
-  vertical-align: middle;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.button:after {
-  background-clip: padding-box;
-  background-color: #ffda7c;
-  border: solid transparent;
-  border-radius: 16px;
-  border-width: 0 0 4px;
-  bottom: -4px;
-  content: "";
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: -1;
-}
-
-.button:main,
-.button:focus {
-  user-select: auto;
-}
-
-.button:hover:not(:disabled) {
-  filter: brightness(1.1);
-  -webkit-filter: brightness(1.1);
-}
-
-.button:disabled {
-  cursor: auto;
 }
 
 .playerOverall {

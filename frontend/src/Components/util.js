@@ -1,6 +1,5 @@
 import teams, { getTeamId } from "@nhl-api/teams";
 import axios from 'axios';
-import * as utils from './util';
     
 /* checkGameLocation simply checks to see if the game is home or away and returns that, it's here
     to clean up the code since it's useful in more than one place, mainly displaying the calendar
@@ -156,9 +155,9 @@ async function populateTeams(activeTeams) {
     return teamsArray;
 }
 
-async function getSchedule(selectedTeam) {
+export async function getSchedule(selectedTeam) {
     console.log('getting schedule of ', selectedTeam) 
-    var teamID = utils.returnTeamID(selectedTeam.name);
+    var teamID = returnTeamID(selectedTeam.name);
     /*  There's a very specific case here where the NHL scheduled games for the predators and sharks before the season
         started, because of this, we need to have a start date variable which changes if the team is them since the rest
         of the teams potentially have preseason games at that time. */
@@ -178,4 +177,17 @@ export async function main() {
     console.log('calling');
     let teams = await getActiveTeams();
     console.log(teams);
+}
+
+export function getMonthFromString(mon){
+    var d = Date.parse(mon + "1, 2012");
+    if(!isNaN(d)){
+       return new Date(d).getMonth() + 1;
+    }
+    return -1;
+}
+
+
+export function removeAccents(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 }

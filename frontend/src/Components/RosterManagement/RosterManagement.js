@@ -2,14 +2,15 @@ import * as utils from '../util';
 import { useState, useCallback, useEffect } from 'react';
 import { ListManager } from 'react-beautiful-dnd-grid';
 import {useLocation} from "react-router-dom";
-
 import { ProgressBar } from "react-bootstrap"; 
+import { Modal } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
+
+import Navbar from '../Navbar/Navbar';
 
 import './Roster.css'
 
 function RosterManagement() {
-
     const location = useLocation();
     var myTeam = location.state.myTeam
     var teamHolder = location.state.teamHolder
@@ -21,24 +22,27 @@ function RosterManagement() {
 
     const [trading, setTrading] = useState(false);
     const [tradingTeam, setTradingTeam] = useState();
-    const [tradeLoaded, setTradeLoaded] = useState(false);
-    const [myTrade, setMyTrade] = useState();
-    const [opposingTrade, setOpposingTrade] = useState();
+    const [myTrade, setMyTrade] = useState([]);
+    const [opposingTrade, setOpposingTrade] = useState([]);
 
     const tableStates = ['Forwards', 'Defense', 'Goalies']
     const [myIndex, setMyIndex] = useState(0);
     const [myString, setMyString] = useState('Forwards')
     const [opposingString, setOpposingString] = useState('Forwards')
     const [opposingIndex, setOpposingIndex] = useState(0);
-    const [teamHolderTemp, setTeams] = useState([]);
-
+    const [lineupIndex, setLineupIndex] = useState(0);
+    const [lineupString, setLineupString] = useState('Forwards');
+    const [rosterChangeHolder, setTeams] = useState(teamHolder);
+    const [showTradeModal, setShowTradeModal] = useState(false);
+    const [resultString, setResultString] = useState('');
+    const [opposingTeamName, setOpposingTeamName] = useState('');
     function getAllOtherTeams() {
         let otherTeams = [];
         for(let i = 0; i < teamHolder.length; i++) {
             if(teamHolder[i] === myTeam) continue;
             otherTeams.push(teamHolder[i]);
         }
-    
+     
         return otherTeams;
     }
 
@@ -48,40 +52,33 @@ function RosterManagement() {
     useEffect(() => {
         setOpposingString(tableStates[opposingIndex])
     }, [opposingIndex]);
+    useEffect(() => {
+        setLineupString(tableStates[lineupIndex])
+    }, [lineupIndex]);
 
+    const handleOpen = () => setShowTradeModal(true);
+    const handleClose = () => setShowTradeModal(false);
   /* These two functions are for display purposes on the screen, the averageCapHits function
      will probably be useful down the line to calculate a players caphit when signing them
      to a contract. */
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
-    function averageCaphits(capHits) {
-        return Math.round(capHits.reduce((prev, curr) => prev + curr) / capHits.length)
+
+    function parsePositionArray(player) {
+        var str = '';
+        for(let i = 0; i < player.positions.length; i++) {
+            str = str.concat(player.positions[i])
+            if(i === player.positions.length - 1) continue;
+            str = str.concat(', ')
+        }
+        return str;
     }
 
-      /* This just takes the cap hits in the player data and makes them readable, the reason this is
-     necessary is because we're taking from the capfriendly website and the scraper returns an
-     odd data array. */
+    /* This just takes the cap hits in the player data and makes them readable, the reason this is
+     necessary is because we're storing caphits as integer values. */
     function parseCapHit(player) {
-        if(player[0] === 'TOTAL') return;
-        let yearsLeft = Number(player[1].split(' ')[0]);
-        var caphits = []
-
-        for(var i = 8; i < (yearsLeft + 8); i++) {
-            /* The undefined here occurs because it can be the case where the capfriendly datatable
-                doesn't display all the data in the table because the contract is longer than the display,
-                in this case we just fill the array with the previous year's contract data based on how
-                many years they have left. They technically could have different cap hits at these times but
-                I personally don't want to go through and individually check every player to make sure. */
-            if(player[i] === undefined) {
-                caphits.push(caphits[caphits.length - 1]);
-            }
-            else {
-                var hitString = player[i].split('$', 2)[1].replace(/,/g, '');
-                caphits.push(Number(hitString));
-            }
-        }
-        return '$' + numberWithCommas(averageCaphits(caphits));
+        return '$' + numberWithCommas(player.caphit);
     }
   
     function setEditingLineup() {
@@ -101,25 +98,6 @@ function RosterManagement() {
         return teamHolder[team].roster.goalies;
     }
 
-    function ListElement(player) {
-        return(
-            <div className='grid-item'>
-                <div className='grid-item-content'>
-                    <p>{displayPlayer(player.player[0])}</p>
-                    <p className='playerOverall'>{player.player[4]}</p>
-                </div>
-            </div>
-        );
-    }
-
-    function displayPlayer(playerName) {
-    let arr = playerName.split(',');
-    if(arr[1].includes('"C"')) {
-        let arr2 = arr[1].split(' ');
-        return arr2[1] + ' ' + arr[0];
-    }
-    return arr[1] + ' ' + arr[0];
-    }
 
     /* These three functions are almost all the same thing except we replace
      the forwards, defense, and goalies respectivel, they call the force
@@ -164,126 +142,198 @@ function RosterManagement() {
     };
 
     function openTradeList() {
-        setTrading(!trading)
-        setTradeLoaded(false);
+        setTrading(!trading);
+        setTradingTeam(getAllOtherTeams()[0]);
     }
 
     function handleTradeTeamSelect(team) {
         setTradingTeam(team);
+        setOpposingTrade([]);
         console.log(team);
-        setTradeLoaded(true);
         forceUpdate();
     }
 
     function setMyOffer(player) {
-        setMyTrade(player);
+        let tempTrade = myTrade;
+        let inArray = tempTrade.some(plyr => plyr.name === player.name);
+        /* If the player is inside of the array then we want to remove them, otherwise we'll add them to the trade list. */
+        if(inArray) {
+            tempTrade = utils.removePlayer(tempTrade, player);
+        }
+        else {
+            tempTrade.push(player);
+        }
+
+        setMyTrade(tempTrade);    
+        forceUpdate();
+        console.log(myTrade)
     }
     function setOpposingOffer(player) {
-        setOpposingTrade(player);
-        console.log(player);
+        let tempOpposingTrade = opposingTrade;
+        let inArray = tempOpposingTrade.some(plyr => plyr.name === player.name);
+        /* If the player is inside of the array then we want to remove them, otherwise we'll add them to the trade list. */
+        if(inArray) {
+            tempOpposingTrade = utils.removePlayer(tempOpposingTrade, player);
+        }
+        else {
+            tempOpposingTrade.push(player);
+        }
+
+        setOpposingTrade(tempOpposingTrade);
+        forceUpdate();
     }
 
     function executeTrade() {
         let opposingPlayerTeam = tradingTeam;
         let myPlayerTeam = myTeam;
-        console.log(opposingTrade);
-        if(opposingTrade.positions.includes('LW') || opposingTrade.positions.includes('C') || opposingTrade.positions.includes('RW')) {
-            opposingPlayerTeam.roster.forwards = utils.removePlayer(opposingPlayerTeam.roster.forwards, opposingTrade);
-            myPlayerTeam.roster.forwards.push(opposingTrade);
+        var myTradeValue = calculateTradeValue(myTrade);
+        var opposingTradeValue = calculateTradeValue(opposingTrade);
+        setOpposingTeamName(tradingTeam.name);
+        if(!(myTradeValue > opposingTradeValue)) {
+            setResultString("We think this offer is too low for what we're giving up.")
+            handleOpen();
+            console.log('Not good enough');
+            return;
         }
-        else if(opposingTrade.positions.includes('LD') || opposingTrade.positions.includes('RD')) {
-            opposingPlayerTeam.roster.defense = utils.removePlayer(opposingPlayerTeam.roster.defense, opposingTrade);
-            myPlayerTeam.roster.defense.push(opposingTrade);
+        for(let i = 0; i < opposingTrade.length; i++) {
+            let opposingPlayer = opposingTrade[i]
+            if(opposingPlayer.positions.includes('LW') || opposingPlayer.positions.includes('C') || opposingPlayer.positions.includes('RW')) {
+                opposingPlayerTeam.roster.forwards = utils.removePlayer(opposingPlayerTeam.roster.forwards, opposingPlayer);
+                myPlayerTeam.roster.forwards.push(opposingPlayer);
+            }
+            else if(opposingPlayer.positions.includes('LD') || opposingPlayer.positions.includes('RD')) {
+                opposingPlayerTeam.roster.defense = utils.removePlayer(opposingPlayerTeam.roster.defense, opposingPlayer);
+                myPlayerTeam.roster.defense.push(opposingPlayer);
+            }
+            else {
+                opposingPlayerTeam.roster.goalies = utils.removePlayer(opposingPlayerTeam.roster.goalies, opposingPlayer);
+                myPlayerTeam.roster.goalies.push(opposingPlayer);
+            }
         }
-        else {
-            opposingPlayerTeam.roster.goalies = utils.removePlayer(opposingPlayerTeam.roster.goalies, opposingTrade);
-            myPlayerTeam.roster.goalies.push(opposingTrade);
+        for(let j = 0; j < myTrade.length; j++) {
+            let myPlayer = myTrade[j];
+            if(myPlayer.positions.includes('LW') || myPlayer.positions.includes('C') || myPlayer.positions.includes('RW')) {
+                myPlayerTeam.roster.forwards = utils.removePlayer(myPlayerTeam.roster.forwards, myPlayer);
+                opposingPlayerTeam.roster.forwards.push(myPlayer);
+            }
+            else if(myPlayer.positions.includes('LD') || myPlayer.positions.includes('RD')) {
+                myPlayerTeam.roster.defense = utils.removePlayer(myPlayerTeam.roster.defense, myPlayer);
+                opposingPlayerTeam.roster.defense.push(myPlayer);
+            }
+            else {
+                myPlayerTeam.roster.goalies = utils.removePlayer(myPlayerTeam.roster.goalies, myPlayer);
+                opposingPlayerTeam.roster.goalies.push(myPlayer);
+            }
         }
-
-        if(myTrade.positions.includes('LW') || myTrade.positions.includes('C') || myTrade.positions.includes('RW')) {
-            myPlayerTeam.roster.forwards = utils.removePlayer(myPlayerTeam.roster.forwards, myTrade);
-            opposingPlayerTeam.roster.forwards.push(myTrade);
-        }
-        else if(myTrade.positions.includes('LD') || myTrade.positions.includes('RD')) {
-            myPlayerTeam.roster.defense = utils.removePlayer(myPlayerTeam.roster.defense, myTrade);
-            opposingPlayerTeam.roster.defense.push(myTrade);
-        }
-        else {
-            myPlayerTeam.roster.goalies = utils.removePlayer(myPlayerTeam.roster.goalies, myTrade);
-            opposingPlayerTeam.roster.goalies.push(myTrade);
-        }
-
         setMyTeam(myPlayerTeam);
         setTradingTeam(opposingPlayerTeam);
-
-
         let allTeams = teamHolder;
         let myTeamIndex = allTeams.findIndex(team => team.name === myTeam.name);
         let opposingTeamIndex = allTeams.findIndex(team => team.name === tradingTeam);
         allTeams[myTeamIndex] = myPlayerTeam;
         allTeams[opposingTeamIndex] = opposingPlayerTeam;
+        setOpposingTrade([]);
+        setMyTrade([]);
         setTeams(allTeams);
+        setResultString("We think this trade is beneficial to us, we're happy to make the deal.")
+        handleOpen()
         forceUpdate();
   }
 
-    function calculateTradeValue(player) {
-        if(player === undefined) return 0;
-        var contractLength = player.yearsLeft;
-        var age = player.age;
-        var rating = player.overall;
-        var salary = player.caphit
-        var potential = player.potential
 
-        let tradeValue = rating;
 
-        // Add potential bonus
-        let potentialValue = 0;
-        if (potential === "A") {
-        potentialValue = 10;
-        } else if (potential === "B") {
-        potentialValue = 7;
-        } else if (potential === "C") {
-        potentialValue = 4;
-        } else if (potential === "D") {
-        potentialValue = 0;
+    function calculateTradeValue(players) {
+        if(players.length === 0) return 0;
+        var totalTradeValue = 0;
+
+        for(var i = 0; i < players.length; i++) {
+            var player = players[i];
+            var contractLength = player.yearsLeft;
+            var age = player.age;
+            var rating = player.overall;
+            var salary = player.caphit;
+            var potential = player.potential;
+
+            let tradeValue = rating;
+
+            // Add potential bonus
+            let potentialValue = 0;
+            if (potential === "A") {
+                potentialValue = 10;
+            } else if (potential === "B") {
+                potentialValue = 7;
+            } else if (potential === "C") {
+                potentialValue = 4;
+            } else if (potential === "D") {
+                potentialValue = 0;
+            }
+            tradeValue += potentialValue;
+            
+            // Add age bonus
+            let ageBonus = 0;
+            if (age <= 22) {
+                ageBonus = 3;
+            } else if (age <= 25) {
+                ageBonus = 2;
+            } else if (age <= 27) {
+                ageBonus = 1;
+            } else if(age >= 35) {
+                ageBonus = -5
+            } else if (age >= 32) {
+                ageBonus = -3;
+            } else if (age >= 30) {
+                if(rating < 70) {
+                    ageBonus = -10;
+                }
+                else if(rating < 75) {
+                    ageBonus = -5
+                }
+                else ageBonus = -2;
+            } else if (age >= 28) {
+                ageBonus = -1;
+            }
+            tradeValue += ageBonus;
+            
+            // Add contract bonus
+            let scaledContractAmount = salary / 1000000; // Scale contract amount
+            let contractBonus = 0;
+            if (scaledContractAmount <= 3 && rating >= 85) { // Good contract threshold
+                contractBonus = 3;
+            } else if (scaledContractAmount <= 6 && rating >= 85) { // Average contract threshold
+                contractBonus = 1;
+            } else if (scaledContractAmount <= 1 && contractLength === 1) { // Last year of contract
+                contractBonus = 2;
+            } 
+            else if(scaledContractAmount > 8 && rating < 80) {
+                contractBonus = -20
+            } else if (scaledContractAmount > 5 && rating < 80) { // Bad contract threshold
+                contractBonus = -10;
+            } else if (scaledContractAmount > 3 && rating < 80) { // Below average contract threshold
+                contractBonus = -5;
+            }
+            
+            if(age >= 28 && potential === 'D') {
+                tradeValue -= 10;
+            }
+            else if(age >= 28 && potential === 'C') {
+                tradeValue -= 5;
+            }
+
+            tradeValue += contractBonus;
+
+            // Add bonus for players with high overall ratings
+            if (rating >= 87) {
+                let highOverallBonus = 10 * Math.pow(2, (rating - 87) / 2); // increase trade value exponentially
+                tradeValue += highOverallBonus;
+            }
+
+            totalTradeValue += tradeValue; // calculate trade value
         }
-        tradeValue += potentialValue;
-    
-        // Add age bonus
-        let ageBonus = 0;
-        if (age <= 22) {
-        ageBonus = 3;
-        } else if (age <= 25) {
-        ageBonus = 2;
-        } else if (age <= 27) {
-        ageBonus = 1;
-        } else if (age >= 32) {
-        ageBonus = -3;
-        } else if (age >= 30) {
-        ageBonus = -2;
-        } else if (age >= 28) {
-        ageBonus = -1;
-        }
-        tradeValue += ageBonus;
-    
-        // Add contract bonus
-        let scaledContractAmount = salary / 1000000; // Scale contract amount
-        let contractBonus = 0;
-        if (scaledContractAmount <= 3 && rating >= 85) { // Good contract threshold
-        contractBonus = 3;
-        } else if (scaledContractAmount <= 6 && rating >= 85) { // Average contract threshold
-        contractBonus = 1;
-        } else if (scaledContractAmount <= 1 && contractLength === 1) { // Last year of contract
-        contractBonus = 2;
-        } else if (scaledContractAmount > 5 && rating < 80) { // Bad contract threshold
-        contractBonus = -5;
-        } else if (scaledContractAmount > 3 && rating < 80) { // Below average contract threshold
-        contractBonus = -3;
-        }
-        tradeValue += contractBonus;
-    
-        return tradeValue;
+
+        return totalTradeValue;
     }
+
+  
 
     function revertMyIndexBack() {
         if(myIndex === 0) {
@@ -321,186 +371,247 @@ function RosterManagement() {
         }
     }
 
+    function advanceLineupString() {
+        if(lineupIndex === 2) {
+            setLineupIndex(0);
+        }
+        else {
+            setLineupIndex(lineupIndex + 1);
+        }
+    }
+
+    function revertLineupString() {
+        if(lineupIndex === 0) {
+            setLineupIndex(2);
+        }
+        else {
+            setLineupIndex(lineupIndex - 1);
+        }
+    }
+
+    function checkIndex(index) {
+        if(index % 2 === 1) return ' listItem1';
+        return ' listItem0';
+    }
+
     return(
-        <div className="myTeamPlayers">
-            <img src={myTeam.logo} width={'250px'} alt={myTeam.name}/>
-            <h2>Team overall: {utils.calculateTeamRating(myTeam)}</h2>
+        <div className="rosterPage">
+            <div>
+                <Navbar myTeam={myTeam} teamHolder={rosterChangeHolder} currentDay={location.state.currentDay}/>
+            </div>
+            <div className="mainHolder">
+                <div className="teamInfoContainer">
+                    <img src={myTeam.logo} width={'250px'} alt={myTeam.name}/>
+                    <h2>Team overall: {utils.calculateTeamRating(myTeam)}</h2>
+                    {!editLineup && <button className='button' onClick={setEditingLineup}>Edit Lineups</button>}
+                    {editLineup && <button className='button' onClick={setEditingLineup}>Finish Editing Lineups</button>}
+                    <button className='button buttonPadding' onClick={openTradeList}>Look for a trade</button>
+                </div>
     
-            {!editLineup && <button className='button' onClick={setEditingLineup}>Edit Lineups</button>}
-            {editLineup && <button className='button' onClick={setEditingLineup}>Finish Editing Lineups</button>}
-    
+            <div className="mainDisplayContainer">
             {editLineup && 
             <div className='lines containter'>
-                <div className='dropzone'>
-                    <ListManager
-                        items={getForwards(myTeam)}
-                        direction="horizontal"
-                        maxItems={3}
-                        render={item => <ListElement player={item}/>}
-                        onDragEnd={reorderForwards}
-                    />
+                <div className="tableHeader">
+                    <h1 className="tableArrow" onClick={revertLineupString}> {'<'} </h1>
+                    <h1>{lineupString}</h1>
+                    <h1 className="tableArrow" onClick={advanceLineupString}> {'>'} </h1>
                 </div>
-                <div className='dropzone'>
-                    <ListManager
-                        items={getDefense(myTeam)}
-                        direction="horizontal"
-                        maxItems={2}
-                        render={item => <ListElement player={item}/>}
-                        onDragEnd={reorderDefense}
-                    />
-                </div>
-                <div className='dropzone'>
-                    <ListManager
-                        items={getGoalies(myTeam)}
-                        direction="horizontal"
-                        maxItems={1}
-                        render={item => <ListElement player={item}/>}
-                        onDragEnd={reorderGoalies}
-                    />
-                </div>
+                <div>
+                    {lineupIndex === 0 && <ul className="playerContainer forwardLines">
+                        {getForwards(myTeam).map(player => (
+                            <li>
+                                <p>{player.name}</p>
+                            </li>
+                        ))}
+                    </ul>}
+                    {lineupIndex === 1 && <ul className="playerContainer defenseLines">
+                        {getDefense(myTeam).map(player => (
+                            <li>
+                                <p>{player.name}</p>
+                            </li>
+                        ))}
+                    </ul>}
+                   {lineupIndex === 2 && <ul className="playerContainer goalieLines">
+                        {getGoalies(myTeam).map(player => (
+                            <li>
+                                <p>{player.name}</p>
+                            </li>
+                        ))}
+                    </ul>}
+                </div>                
             </div>}
             <br />
-            <button className='button buttonPadding' onClick={openTradeList}>Look for a trade</button>
             {trading && <>
                 <h1>Select a team to trade with: </h1>
                 {getAllOtherTeams().map((team) => (
                     <img onClick={() => handleTradeTeamSelect(team)} width="50em" key={team.abbreviation} src={team.logo} alt={team.name}/>
                 ))}
-                {tradeLoaded && 
                 <div className="tradePanel">
                     <div className='myTeamTrading'>
+                        <img src={myTeam.logo} alt={myTeam.abbreviation}  className="opposingLogo"/>
                         <div className="tableHeader">
                             <h1 className="tableArrow" onClick={revertMyIndexBack}> {'<'} </h1>
                             <h1>{myString}</h1>
                             <h1 className="tableArrow" onClick={advanceMyIndexForward}> {'>'} </h1>
                         </div>
-                        {myIndex === 0 && <div className="forwards">
-                            <table className='tradeTable'>
-                            <tr>
+                        {myIndex === 0 && <div className="statsContainer">
+                            <table className='statsTable'>
+                                <tr className="tableHeadings fixed">
+                                    <th>Player</th>
+                                    <th>Position</th>
+                                    <th>Overall</th>
+                                    <th>Cap Hit</th>
+                                </tr>
+                                {getForwards(myTeam).map((player, index) => (
+                                <tr className={"rowData" + checkIndex(index)} onClick={() => setMyOffer(player)}>
+                                    <td>{player.name}</td>
+                                    <td>{parsePositionArray(player)}</td>
+                                    <td>{player.overall}</td>
+                                    <td>{parseCapHit(player)}</td>
+                                </tr>
+                                ))}
+                            </table>
+                        </div>}
+                        {myIndex === 1 && <div className="statsContainer">
+                            <table className='statsTable'>
+                            <tr className="tableHeadings fixed">
                                 <th>Player</th>
                                 <th>Position</th>
                                 <th>Overall</th>
                                 <th>Cap Hit</th>
                             </tr>
-                            {getForwards(myTeam).map(player => (
-                                <tr className="playerData" onClick={() => setMyOffer(player)}>
+                            {getDefense(myTeam).map((player, index) => (
+                                <tr className={"rowData" + checkIndex(index)} onClick={() => setMyOffer(player)}>
                                 <td>{player.name}</td>
-                                <td>{player.positions}</td>
+                                <td>{parsePositionArray(player)}</td>
                                 <td>{player.overall}</td>
-                                <td>{player.caphit}</td>
+                                <td>{parseCapHit(player)}</td>
                                 </tr>
                             ))}
                             </table>
                         </div>}
-                        {myIndex === 1 && <div className="defense">
-                            <table className='tradeTable'>
-                            <tr>
+                        {myIndex === 2 && <div className="statsContainer">
+                            <table className='statsTable'>
+                            <tr className="tableHeadings fixed">
                                 <th>Player</th>
                                 <th>Position</th>
                                 <th>Overall</th>
                                 <th>Cap Hit</th>
                             </tr>
-                            {getDefense(myTeam).map(player => (
-                                <tr className="playerData" onClick={() => setMyOffer(player)}>
+                            {getGoalies(myTeam).map((player, index) => (
+                                <tr className={"rowData" + checkIndex(index)} onClick={() => setMyOffer(player)}>
                                 <td>{player.name}</td>
-                                <td>{player.positions}</td>
+                                <td>{parsePositionArray(player)}</td>
                                 <td>{player.overall}</td>
-                                <td>{player.caphit}</td>
-                                </tr>
-                            ))}
-                            </table>
-                        </div>}
-                        {myIndex === 2 && <div className="goalie">
-                            <table className='tradeTable'>
-                            <tr>
-                                <th>Player</th>
-                                <th>Position</th>
-                                <th>Overall</th>
-                                <th>Cap Hit</th>
-                            </tr>
-                            {getGoalies(myTeam).map(player => (
-                                <tr className="playerData" onClick={() => setMyOffer(player)}>
-                                <td>{player.name}</td>
-                                <td>{player.positions}</td>
-                                <td>{player.overall}</td>
-                                <td>{player.caphit}</td>
+                                <td>{parseCapHit(player)}</td>
                                 </tr>
                             ))}
                             </table>
                         </div>}
                         <div className="tradeBar">
-                            <ProgressBar className="tradeValue" variant="success" now={calculateTradeValue(myTrade)} max={345} />
+                            <ProgressBar className="tradeValue" variant="success" now={calculateTradeValue(myTrade)} max={600} />
                         </div>
                     </div>
                 <div className="opposingTeamTrading">
+                    <img src={tradingTeam.logo} alt={tradingTeam.abbreviation}  className="opposingLogo"/>
                         <div className="tableHeader">
                             <h1 className="tableArrow" onClick={revertOpposingIndexBack}> {'<'} </h1>
                             <h1>{opposingString}</h1>
                             <h1 className="tableArrow" onClick={advanceOpposingIndexForward}> {'>'} </h1>
                         </div>
-                    {opposingIndex === 0 && <div className="forwards">
-                        <table className='tradeTable'>
-                        <tr>
+                    {opposingIndex === 0 && <div className="statsContainer">
+                        <table className='statsTable'>
+                        <tr className='tableHeadings fixed'>
                             <th>Player</th>
                             <th>Position</th>
                             <th>Overall</th>
                             <th>Cap Hit</th>
                         </tr>
-                        {getForwards(tradingTeam).map(player => (
-                            <tr className="playerData" onClick={() => setOpposingOffer(player)}>  
+                        {getForwards(tradingTeam).map((player, index) => (
+                            <tr className={"rowData" + checkIndex(index)} onClick={() => setOpposingOffer(player)}>  
                             <td>{player.name}</td>
-                            <td>{player.positions}</td>
+                            <td>{parsePositionArray(player)}</td>
                             <td>{player.overall}</td>
-                            <td>{player.caphit}</td>
+                            <td>{parseCapHit(player)}</td>
                             </tr>
                         ))}
                         </table>
                     </div>}
-                    {opposingIndex === 1 && <div className="defense">
-                        <table className='tradeTable'>
-                        <tr>
+                    {opposingIndex === 1 && <div className="statsContainer">
+                        <table className='statsTable'>
+                        <tr className="tableHeadings fixed">
                             <th>Player</th>
                             <th>Position</th>
                             <th>Overall</th>
                             <th>Cap Hit</th>
                         </tr>
-                        {getDefense(tradingTeam).map(player => (
-                            <tr className="playerData" onClick={() => setOpposingOffer(player)}>
-                            <td>{player.name}</td>
-                            <td>{player.positions}</td>
-                            <td>{player.overall}</td>
-                            <td>{player.caphit}</td>
+                        {getDefense(tradingTeam).map((player, index) => (
+                            <tr className={"rowData" + checkIndex(index)} onClick={() => setOpposingOffer(player)}>
+                                <td>{player.name}</td>
+                                <td>{parsePositionArray(player)}</td>
+                                <td>{player.overall}</td>
+                                <td>{parseCapHit(player)}</td>
                             </tr>
                         ))}
                         </table>
                     </div>}
-                    {opposingIndex === 2 && <div className="goalie">
-                        <table className='tradeTable'>
-                        <tr>
+                    {opposingIndex === 2 && <div className="statsContainer">
+                        <table className='statsTable'>
+                        <tr className='tableHeadings fixed'>
                             <th>Player</th>
                             <th>Position</th>
                             <th>Overall</th>
                             <th>Cap Hit</th>
                         </tr>
-                        {getGoalies(tradingTeam).map(player => (
-                            <tr className="playerData" onClick={() => setOpposingOffer(player)}>
+                        {getGoalies(tradingTeam).map((player, index) => (
+                            <tr className={"rowData" + checkIndex(index)} onClick={() => setOpposingOffer(player)}>
                             <td>{player.name}</td>
-                            <td>{player.positions}</td>
+                            <td>{parsePositionArray(player)}</td>
                             <td>{player.overall}</td>
-                            <td>{player.caphit}</td>
+                            <td>{parseCapHit(player)}</td>
                             </tr>
                         ))}
                         </table>
                     </div>}
                     <div className="tradeBar">
-                        <ProgressBar className="tradeValue" variant="success" now={calculateTradeValue(opposingTrade)} max={345} />
+                        <ProgressBar className="tradeValue" variant="success" now={calculateTradeValue(opposingTrade)} max={600} />
                     </div>
                     </div>
-                </div>}
-                {(myTrade && opposingTrade) && <div className='trade-execute'>
+                </div>
+                <div className="tradeList">
+                    <div className="myTradeList">
+                        {myTrade.length > 0 && <h1>{myTeam.name} Offer: </h1>}
+                        {myTrade.map(player => (
+                            <h2>{player.name} - {player.overall}</h2>
+                         ))}
+                    </div>
+                    {tradingTeam && <div className="opposingTradeList">
+                        {opposingTrade.length > 0 && <h1>{tradingTeam.name} Offer: </h1>}
+                        {opposingTrade.map(player => (
+                            <h2>{player.name} - {player.overall}</h2>
+                        ))}
+                    </div>}
+                </div>
+                {(myTrade.length > 0 && opposingTrade.length > 0) && <div className='trade-execute'>
                     <button onClick={executeTrade} className='button'>Propose Trade</button>
                 </div>}
+                <Modal show={showTradeModal} onHide={handleClose}>
+                    <Modal.Header>
+                        Message from {opposingTeamName}
+                    </Modal.Header>
+                    <Modal.Body>
+                        {resultString}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <button className="button" onClick={handleClose}>
+                            Close
+                        </button>
+                    </Modal.Footer>
+                </Modal>
             </>}
+            </div>
+            
+            </div>
         </div>
     )
 }

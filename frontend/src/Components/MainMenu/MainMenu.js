@@ -1,23 +1,19 @@
 import './MainMenu.css';
 import {useState, useEffect, useCallback} from 'react';
-import axios from 'axios';
-import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import * as utils from '../util'
-import Navbar from '../Navbar/Navbar';
 
 import jsonData from '../../Roster_JSON/teams.json'
 
+import { useNavigate } from 'react-router-dom';
+
 function MainMenu() {
   const [rosterLoaded, setRosterLoaded] = useState(false);
-
-  const [currentDate, setCurrentDate] = useState(new Date('2022-10-07'))
   
   const[myTeam, setMyTeam] = useState();
   const [teamHolder, setTeams] = useState([]);
 
-  const [eastPlayoffs, setEastPlayoffs] = useState([]);
-  const [westPlayoffs, setWestPlayoffs] = useState([]);
+  const currentDay = new Date(2022, 9, 1);
 
   /* This useEffect is on component mount, it sets the rosters of each
     team on the page load, this can be setup with an API in a backend to
@@ -26,11 +22,7 @@ function MainMenu() {
     getActiveTeams();
   }, []);
 
-  /* This useEffect makes sure that the team is selected first before loading
-      everything to make sure we aren't attempting to render undefined values */
-  // useEffect(() => {
-  //   if(myTeam) setRosterLoaded(true);
-  // }, [myTeam])
+  const navigate = useNavigate();
 
   /* This useState and useCallback are used to trick react into re-rendering the page
       for any time it refuses to automatically refresh when a state updates. */
@@ -51,20 +43,6 @@ function MainMenu() {
     return teamArr;
   }
 
-  function getRoster(team) {
-    /* This block of code splits the name of the input string into
-        an array and grabs the json object based on the team's name  */
-    let teamNameArray = team.name.toLowerCase().split(' ');
-    let teamName = teamNameArray[teamNameArray.length - 1];
-    let currentRoster = jsonData[teamName];
-    
-    return {
-      forwards: currentRoster.forward,
-      defense: currentRoster.defense,
-      goalies: currentRoster.goalie
-    }
-  }
-
   function handleTeamSelect(team) {
     setMyTeam(team);
     forceUpdate();
@@ -72,200 +50,37 @@ function MainMenu() {
 
   function getStarted() {
     setRosterLoaded(true);
+    navigate('/app', {state: {myTeam: myTeam, teamHolder: teamHolder, currentDay: currentDay}})
   }
 
-  /* populate Days will run into an issue once we fix the current one, basically
-      because we are pulling the global schedule variable that is no longer used,
-      we just have to grab the schedule of myTeam */
-  function populateDays(date, view) {
-    let activeTeams = teamHolder;
-    if(view === 'month') {
-      var schedule_day = date.toISOString().split('T')[0];
 
-      const teamIndex = teamHolder.findIndex(team => team.name === myTeam.name);
-
-
-      let schedule = teamHolder[teamIndex].schedule;
-      /*  We grab the day on the schedule that is the current day on the calendar, if it contains
-          the current day it'll return the index in the array, otherwise it'll give us -1, hence the
-          i > -1 conditional */
-      const i = schedule.findIndex(e => e.date === schedule_day);
-      if (i > -1) {      
-        /*  We check to see if the scheduled game today is home or away, since the game data given to us
-            only specifies the teams, we just check to see if the ID of the away team is ours, if it is then
-            it is a road game, if it isn't then it's a home game. */
-        var teamID = myTeam.name;
-        if(schedule[i].games[0].teams.away.team.name === teamID) {
-          const j = activeTeams.findIndex(e => e.name === schedule[i].games[0].teams.home.team.name);
-          return (<img width="50px" src={activeTeams[j].logo} alt={activeTeams[j].name}/>);
+  function hexToRgbA(hex, alpha){
+    var c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        c= hex.substring(1).split('');
+        if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
         }
-        else {
-          const j = activeTeams.findIndex(e => e.name === schedule[i].games[0].teams.away.team.name);
-          return (<img width="50px" src={activeTeams[j].logo} alt={activeTeams[j].name}/>);
-        }
-      }
-      else return;
+        c= '0x'+c.join('');
+        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
     }
-    return;
-  }
-
-  function tileDisabled({ date, view }) {
-    return date < currentDate;
-  }
-
-  function simulateToDate(date) {
-    let iterationDate = currentDate; 
-
-    while(iterationDate < date) {
-      let tempDate = new Date((iterationDate).valueOf() + 1000*3600*24);
-      let tempDate2 = new Date((iterationDate).valueOf() - 1000*3600*24);
-      let schedule_string = tempDate2.toISOString().split('T')[0];
-      simulateGames(schedule_string);
-      setCurrentDate(tempDate);
-      iterationDate = tempDate;
-    }
-  }
-
-  function simulateGames(date) {
-    let allTeams = teamHolder;
-    axios.get(`https://statsapi.web.nhl.com/api/v1/schedule?startDate=${date}&endDate=${date}`).then( res => {
-      if(res.data.totalGames === 0) return;
-      let allGames = res.data.dates[0].games;
-      for(let i = 0; i < allGames.length; i++) {
-        /* Because the preds and sharks start early this year, there are preseason games going on at the same time
-            as the regular season games that they are having, we just skip those with the PR game type because of this */
-        if(allGames[i].gameType === 'PR') continue;
-
-        let teams = allGames[i].teams;
-        let awayTeam = teams.away.team;
-        let homeTeam = teams.home.team;
-
-        // let personalTeamID = utils.returnTeamID(myTeam);
-        const awayIndex = teamHolder.findIndex(e => e.id === awayTeam.id);
-        const homeIndex = teamHolder.findIndex(e => e.id === homeTeam.id);
-        
-        /* Math.random isn't seeded in JS, so in order to add a random factor to
-            our function we create an array that has a max of 256 (based on the 8 bits
-            from Uint8) and check to see if it is greater than the halfway point. There
-            is more that will factor into this, such as team overall */
-        var typedArray = new Uint8Array(1);
-        crypto.getRandomValues(typedArray);
-        if(typedArray[0] + (utils.calculateTeamRating(allTeams[homeIndex]) / 2) > (256 / 2)) {
-          allTeams[homeIndex].wins = allTeams[homeIndex].wins + 1;
-          allTeams[awayIndex].losses = allTeams[awayIndex].losses + 1;
-          setTeams(allTeams);
-        }
-        else {
-          allTeams[awayIndex].wins = allTeams[awayIndex].wins + 1;
-          allTeams[homeIndex].losses = allTeams[homeIndex].losses + 1;
-          setTeams(allTeams);
-        }
-      }
-      forceUpdate();
-    });
-  }
-
-  /* This function finds the top teams in a division based on the teams you give it, it's not hard coded to 8 teams,
-      so if we want to add more teams to a division (expansion feature) we're allowed to. */
-  function findTopFive(teams) {
-    let topFive = [];
-  
-    for(let i = 0; i < teams.length; i++) {
-      if(topFive.length < 5) {
-        topFive.push(teams[i]);
-      }
-      else if((topFive[0].wins < teams[i].wins) && (topFive[1].wins < teams[i].wins) && (topFive[2].wins < teams[i].wins) && (topFive[3].wins < teams[i].wins) && (topFive[4].wins < teams[i].wins)) {
-        const lowestTeam = topFive.reduce(
-          (acc, loc) =>
-            acc.wins < loc.wins
-              ? acc
-              : loc
-        )
-        let spliceIndex = topFive.findIndex(team => team === lowestTeam);
-        topFive.splice(spliceIndex, 1);
-        topFive.push(teams[i]);
-        
-      }
-    }
-
-    return topFive;
-  }
-
-  function checkForPlayoffs() {
-    playoffCalculator();
-    let userTeam = teamHolder.find(e => e.id === myTeam.id);
-    if(userTeam.division === 'metro' || userTeam.division === 'atlantic') {
-      if(eastPlayoffs.find(team => team === userTeam)) return true;
-    }
-    else if(userTeam.division === 'central' || userTeam.division === 'pacific') {
-      if(westPlayoffs.find(team => team === userTeam)) return true;
-    }
-
-    return false;
-  }
-
-  function playoffCalculator() {
-    let metroTeams = teamHolder.filter(team => team.division === 'metro');
-    let atlanticTeams = teamHolder.filter(team => team.division === 'atlantic');
-    let pacificTeams = teamHolder.filter(team => team.division === 'pacific');
-    let centralTeams = teamHolder.filter(team => team.division === 'central');
-    
-    let topMetroTeams = findTopFive(metroTeams);
-    let topAtlanticTeams = findTopFive(atlanticTeams);
-    let topPacificTeams = findTopFive(pacificTeams);
-    let topCentralTeams = findTopFive(centralTeams);
-
-
-    topMetroTeams.sort((a, b) => a.wins - b.wins);
-    topAtlanticTeams.sort((a, b) => a.wins - b.wins);
-    topPacificTeams.sort((a, b) => a.wins - b.wins);
-    topCentralTeams.sort((a, b) => a.wins - b.wins);
-
-    let playoffsEast = [topMetroTeams[2], topMetroTeams[3], topMetroTeams[4], topAtlanticTeams[2], topAtlanticTeams[3], topAtlanticTeams[4]];
-    let playoffsWest = [topPacificTeams[2], topPacificTeams[3], topPacificTeams[4], topCentralTeams[2], topCentralTeams[3], topCentralTeams[4]];
-
-    let eastWildcard = [topMetroTeams[0], topMetroTeams[1], topAtlanticTeams[0], topAtlanticTeams[1]];
-    let westWildcard = [topCentralTeams[0], topCentralTeams[1], topPacificTeams[0], topPacificTeams[1]];
-    eastWildcard.sort((a, b) => a.wins - b.wins);
-    westWildcard.sort((a, b) => a.wins - b.wins);
-    
-    eastWildcard.shift();
-    eastWildcard.shift();
-    westWildcard.shift();
-    westWildcard.shift();
-
-    playoffsEast.unshift(eastWildcard[0], eastWildcard[1]);
-    playoffsWest.unshift(westWildcard[0], westWildcard[1]);
-
-    setEastPlayoffs(playoffsEast);
-    setWestPlayoffs(playoffsWest);
-  }
-
-  function getMyTeamWins() {
-    let myIndex = teamHolder.findIndex(e => e.id === myTeam.id);
-    return teamHolder[myIndex].wins
-  }
-
-  function getMyTeamLosses() {
-    let myIndex = teamHolder.findIndex(e => e.id === myTeam.id);
-    return teamHolder[myIndex].losses
-  }
+    throw new Error('Bad Hex');
+}
 
   function getTeamGradient (team) {
-    let primaryColors = [team.colors[0], team.colors[1]]
+    let primaryColors = [hexToRgbA(team.colors[0], .8), hexToRgbA(team.colors[1], .8)]
     var style = {
-      fontSize: '16px',
-      fontWeight: '600',
       color: '#fff',
+      backgroundColor: '#f4f1de',
       background: `linear-gradient(to bottom, ${primaryColors.join(", 75%, ")})`,
       cursor: 'pointer',
       margin: '20px',
       textAlign: 'center',
       border: 'none',
-      borderRadius: '10%',
+      borderRadius: '50%',
       backgroundSize: '300% 100%',
       transition: `all 0.3s ease-in`,
-      boxShadow: `0 5px 20px 0 rgb(32, 38, 57)`
+      boxShadow: `0 1px 20px 0 ${hexToRgbA('#3d405b', .4)}`
     }
     return style;
   }
@@ -293,7 +108,6 @@ function MainMenu() {
 
   return (
     <div className="App">
-
       {!rosterLoaded && 
       <div className='mainContainer'>
         <div className="title">
@@ -305,14 +119,14 @@ function MainMenu() {
             {myTeam !== undefined && 
             <div className='preselectContainer'>
               <div className='preselectInfo'>
-                <img src={myTeam.logo} alt={myTeam.name} width={'250px'}/>
+                <img src={myTeam.logo} alt={myTeam.name} width={'100em'}/>
                 <h1>{myTeam.name}</h1>
-                <h2>Team Overall: {utils.calculateTeamRating(myTeam)}</h2>
+                <h2>Team Overall: <strong className="secondary-color">{utils.calculateTeamRating(myTeam)}</strong></h2>
                 <h2>Top Players:</h2>
                 <ul className='topPlayers'>
                   {getTopPlayers(myTeam).map(player => (
                     <li>
-                      {player.name} - <strong>{player.overall}</strong>
+                      {player.name} - <strong className='secondary-color'>{player.overall}</strong>
                     </li>
                   ))}
                 </ul>
@@ -332,50 +146,9 @@ function MainMenu() {
               ))}
               </ul>
             </div>
-          
           </div>
         </div>
       </div>}
-
-      {rosterLoaded && (
-        <div className="loaded">
-          <div>
-            <Navbar myTeam={myTeam} teamHolder={teamHolder}/>
-          </div>
-          <br />
-
-          <div className="Season">
-            <Calendar 
-              minDate={new Date('2022-10-07')}
-              maxDate={new Date('2023-04-17')}
-              value={currentDate}
-              minDetail='year'
-              tileContent={({ date, view }) => populateDays(date, view)}
-              onChange={simulateToDate}
-              tileDisabled={tileDisabled}
-            />
-            <p>Current Record: {getMyTeamWins()}-{getMyTeamLosses()}</p>
-            {(currentDate >= new Date('2023-04-17')) && (
-              <div>
-                {checkForPlayoffs() && <p>You made the playoffs!</p>}
-                {!checkForPlayoffs() && <p>You missed the playoffs :(</p>}
-              </div>
-            )}
-            <table>
-              <tr>
-                <th>Team</th>
-                <th>Record</th>
-              </tr>
-              {teamHolder.map(team => (
-                  <tr>
-                    <td>{team.name}</td>
-                    <td>{team.wins}-{team.losses}</td>
-                  </tr>
-                ))}
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
