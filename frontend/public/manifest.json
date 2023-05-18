@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "NHL GM Mode",
+  "name": "NHL Be A GM Mode Simulator",
   "icons": [
     {
       "src": "favicon.ico",

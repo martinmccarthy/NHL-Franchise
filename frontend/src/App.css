@@ -5,6 +5,7 @@ body {
   font-family: 'Mulish', sans-serif;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 /* Primary colors */
@@ -132,7 +133,8 @@ h1 {
   -webkit-user-select: none;
   vertical-align: middle;
   white-space: nowrap;
-  width: 20em;
+  max-width: 20em;
+  min-width: fit-content;
 }
 
 .button:after {

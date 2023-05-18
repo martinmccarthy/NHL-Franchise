@@ -8,7 +8,7 @@ function CalendarDays(props) {
 
     const [eastPlayoffs, setEastPlayoffs] = useState([]);
     const [westPlayoffs, setWestPlayoffs] = useState([]);
-    const [playoffBracket, setPlayoffBracket] = useState([]);
+    const [playoffBracket, setPlayoffBracket] = useState(props.playoffBracket);
 
     const playoffDate = new Date(2023, 3, 17)
 
@@ -28,11 +28,12 @@ function CalendarDays(props) {
           number: firstDayOfMonth.getDate(),
           selected: (firstDayOfMonth.toDateString() === props.day.toDateString()),
           year: firstDayOfMonth.getFullYear(),
-          status: ''
+          status: '',
+          playoffGame: false
         }
     
         currentDays.push(calendarDay);
-      }
+    }
 
     function checkIfSimmed(givenDate) {
         if(props.day.getTime() > givenDate.date.getTime()){
@@ -65,8 +66,8 @@ function CalendarDays(props) {
     }
 
     function calculatePlayoffBracket() {
-        let homeIndex = playoffBracket.findIndex(({home}) => home.name === props.myTeam.name);
-        let awayIndex = playoffBracket.findIndex(({away}) => away.name === props.myTeam.name);
+        let homeIndex = playoffBracket.findIndex(({home}) => home.team === props.myTeam);
+        let awayIndex = playoffBracket.findIndex(({away}) => away.team === props.myTeam);
         if(homeIndex > -1) return {matchup: playoffBracket[homeIndex], status: 'home'}
         return {matchup: playoffBracket[awayIndex], status: 'away'}
     }
@@ -83,26 +84,26 @@ function CalendarDays(props) {
         
         /* The playoffs are started */
         if(givenDate.date.getTime() > playoffDate.getTime() && checkForPlayoffs() && props.day.getTime() >= playoffDate.getTime()) {
+            let index = currentDays.findIndex((day) => day === givenDate);
             let timeBetween = Math.round((givenDate.date.getTime() - playoffDate.getTime()) / (1000 * 60 * 60 * 24))
-            console.log(timeBetween);
             if(timeBetween % 2 === 0 || timeBetween > 14) {
                 return;
             }
+            currentDays[index].playoffGame = true;
             let bracket = calculatePlayoffBracket()
-            console.log(bracket);
             if(bracket.status === 'away') {
-                let logo = bracket.matchup.home.logo;
+                let logo = bracket.matchup.home.team.logo;
                 return(
                     <div className={"calendarImage " + checkIfSimmed(givenDate)} style={getAwaySecondary(props.myTeam, givenDate)}>
-                        <img src={logo} alt={bracket.matchup.home.name}/>
+                        <img src={logo} alt={bracket.matchup.home.team.name}/>
                     </div>
                 )
             }
             else if(bracket.status === 'home') {
-                let logo = bracket.matchup.away.logo;
+                let logo = bracket.matchup.away.team.logo;
                 return(
                     <div className={"calendarImage " + checkIfSimmed(givenDate)} style={getHomePrimary(props.myTeam, givenDate)}>
-                        <img src={logo} alt={bracket.matchup.away.name}/>
+                        <img src={logo} alt={bracket.matchup.away.team.name}/>
                     </div>
                 )
             }
@@ -198,27 +199,28 @@ function CalendarDays(props) {
         let secondMatchupEast;
         let topMatchupWest;
         let secondMatchupWest;
-        let metroMatchup = {home: playoffsEast[1], away: playoffsEast[0]};
-        let atlanticMatchup = {home: playoffsEast[4], away: playoffsEast[3]};
-        let pacificMatchup = {home: playoffsWest[1], away: playoffsWest[0]}
-        let centralMatchup = {home: playoffsWest[4], away: playoffsWest[3]}
+        let metroMatchup = {home: {team: playoffsEast[1], seriesRecord: {wins: 0, losses: 0}}, away: {team: playoffsEast[0] , seriesRecord: {wins: 0, losses: 0}}, matchup:'metro'};
+        let atlanticMatchup = {home: {team: playoffsEast[4], seriesRecord: {wins: 0, losses: 0}}, away: {team: playoffsEast[3], seriesRecord: {wins: 0, losses: 0}}, matchup: 'atlantic'};
+        let pacificMatchup = {home: {team: playoffsWest[1], seriesRecord: {wins: 0, losses: 0}}, away: {team: playoffsWest[0], seriesRecord: {wins: 0, losses: 0}}, matchup: 'pacific'}
+        let centralMatchup = {home: {team: playoffsWest[4], seriesRecord: {wins: 0, losses: 0}}, away: {team: playoffsWest[3], seriesRecord: {wins: 0, losses: 0}}, matchup: 'central'}
 
-        /* This block just checks the which team plays wildcard one and which one plays wildcard 2 */
+        /* This block just checks the which team plays wildcard one and which one plays wildcard 2, the first if condition is the atlantic team winning the east, its respective else is
+            the metro team winning the east. In the west, the first if condition is the central team winning the west and the second is the pacific team winning the west. */
         if(playoffsEast[5].record.wins > playoffsEast[2].record.wins) {
-            topMatchupEast = {home: playoffsEast[5], away: eastWildcard[0]}
-            secondMatchupEast = {home: playoffsEast[2], away: eastWildcard[1]}
+            topMatchupEast = {home: {team: playoffsEast[5], seriesRecord: {wins: 0, losses: 0}}, away: {team: eastWildcard[0], seriesRecord: {wins: 0, losses: 0}}, matchup: 'atlantic'}
+            secondMatchupEast = {home: {team: playoffsEast[2], seriesRecord: {wins: 0, losses: 0}}, away: {team: eastWildcard[1], seriesRecord: {wins: 0, losses: 0}}, matchup: 'metro'}
         }
         else {
-            topMatchupEast = {home: playoffsEast[2], away: eastWildcard[0]}
-            secondMatchupEast = {home: playoffsEast[5], away: eastWildcard[1]}
+            topMatchupEast = {home: {team: playoffsEast[2], seriesRecord: {wins: 0, losses: 0}}, away: {team: eastWildcard[0], seriesRecord: {wins: 0, losses: 0}}, matchup: 'metro'}
+            secondMatchupEast = {home: {team: playoffsEast[5], seriesRecord: {wins: 0, losses: 0}}, away: {team: eastWildcard[1], seriesRecord: {wins: 0, losses: 0}}, matchup: 'atlantic'}
         }
         if(playoffsWest[5].record.wins > playoffsWest[2].record.wins) {
-            topMatchupWest = {home: playoffsWest[5], away: westWildcard[0]}
-            secondMatchupWest = {home: playoffsWest[2], away: westWildcard[1]}
+            topMatchupWest = {home: {team: playoffsWest[5], seriesRecord: {wins: 0, losses: 0}}, away: {team: westWildcard[0], seriesRecord: {wins: 0, losses: 0}}, matchup: 'central'}
+            secondMatchupWest = {home: {team: playoffsWest[2], seriesRecord: {wins: 0, losses: 0}}, away: {team: westWildcard[1], seriesRecord: {wins: 0, losses: 0}}, matchup: 'pacific'}
         }
         else {
-            topMatchupWest = {home: playoffsWest[2], away: westWildcard[0]}
-            secondMatchupWest = {home: playoffsWest[5], away: westWildcard[1]}
+            topMatchupWest = {home: {team: playoffsWest[2], seriesRecord: {wins: 0, losses: 0}}, away: {team: westWildcard[0], seriesRecord: {wins: 0, losses: 0}}, matchup: 'pacific'}
+            secondMatchupWest = {home: {team: playoffsWest[5], seriesRecord: {wins: 0, losses: 0}}, away: {team: westWildcard[1], seriesRecord: {wins: 0, losses: 0}}, matchup: 'central'}
         }
 
         playoffsEast.unshift(eastWildcard[0], eastWildcard[1]);
@@ -227,7 +229,9 @@ function CalendarDays(props) {
         if(eastPlayoffs.length < 1 && westPlayoffs.length < 1) {
             setEastPlayoffs(playoffsEast);
             setWestPlayoffs(playoffsWest);
-            setPlayoffBracket([topMatchupEast, topMatchupWest, secondMatchupEast, secondMatchupWest, atlanticMatchup, metroMatchup, centralMatchup, pacificMatchup])
+            let playoffs = [topMatchupEast, topMatchupWest, secondMatchupEast, secondMatchupWest, atlanticMatchup, metroMatchup, centralMatchup, pacificMatchup]
+            setPlayoffBracket(playoffs)
+            props.setPlayoffBracket(playoffs);
         }
     }
 
@@ -247,7 +251,7 @@ function CalendarDays(props) {
         <div className="tableContent">
             {currentDays.map(day => {
                 return(
-                    <div className={"calendarDay" + (day.currentMonth ? " current" : "") + (day.selected ? " selected" : "") + (checkIfSimmed(day))} onClick={(e) => {if(e.target.className.includes('inactive')) return; props.changeCurrentDay(day)}}>
+                    <div className={"calendarDay" + (day.currentMonth ? " current" : "") + (day.selected ? " selected" : "") + (checkIfSimmed(day))} onClick={(e) => {if(e.target.className.includes('inactive')) return; props.changeCurrentDay(day, currentDays)}}>
                         <p>{day.number}</p>
                         {checkForGameDay(day)}
                         <span>{day.status}</span>
