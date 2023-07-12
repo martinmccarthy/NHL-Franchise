@@ -12,6 +12,7 @@ import players, { getPlayerId, getPlayerMugshot } from '@nhl-api/players'
 
 import { Modal, Col, Row, Container } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
+import PlayerCard from '../PlayerCard/PlayerCard';
 
 
 function GameLanding() {
@@ -85,7 +86,8 @@ function GameLanding() {
           <h1>{modalPlayer.name}</h1>
         </Modal.Header>
         <Modal.Body className="show-grid">
-          <Container>
+          <PlayerCard player={modalPlayer} team={myTeam} />
+          {/* <Container>
             <Col xs={12} md={4}>
               <img src={getPlayerImage()} alt={modalPlayer.name} width="200em"/>
             </Col>
@@ -98,7 +100,7 @@ function GameLanding() {
               <h2>Assists: <strong>{modalPlayer.assists}</strong></h2>
               <h2>Points: <strong>{modalPlayer.goals + modalPlayer.assists}</strong></h2>
             </Col>
-          </Container>
+          </Container> */}
         </Modal.Body>
         <Modal.Footer>
             <button className="button" onClick={handleClose}>

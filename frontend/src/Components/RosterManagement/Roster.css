@@ -30,6 +30,9 @@
 .opposingLogo {
     width: 15%;
 }
+.logoHeader {
+    margin: 1em;
+}
 
 .tradeValue {
     width: 90%;

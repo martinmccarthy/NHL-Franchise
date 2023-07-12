@@ -124,3 +124,73 @@ html, body {
   -webkit-filter: brightness(0) invert(1) blur(10px);
   opacity:1;
 }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 55vw;
+  margin: 1em auto;
+  background-color: #f3f6f4;
+  padding: 2em;
+  border-radius: 1em;
+  color: #32383d;
+  height: 75vh;
+  overflow: scroll;
+  margin: 1em;
+}
+
+.submitForm {
+  align-items: center;
+  justify-content: center;
+}
+
+.submitForm button {
+  width: 100%;
+  margin: 1em;
+  cursor: pointer;
+}
+
+.form input, textarea {
+  border: 1px solid #ccc;
+  border-radius: 1em;
+  margin-bottom: 1vh;
+  font-size: 1rem;
+  resize: none;
+  width: 95%;
+  padding: 1vh;
+}
+
+.form button {
+  padding: 0.5rem 1rem;
+  background-color: #006666;
+  color: #fff;
+  border: none;
+  border-radius: 1em;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: .3s ease-in;
+  font-weight: 700;
+}
+
+.form button:hover {
+  background-color: #9dbcbc;
+  color: #32383d;
+}
+
+.formHeader {
+  text-align: center;
+  margin: .25em;
+  color: #32383d;
+}
+
+.colorsContainer {
+  display: inline-block;
+  display: flex;
+  justify-content: center;
+}
+
+.colorBlock {
+  float: left;
+  margin: 5px;
+  border: 2px solid rgba(0, 0, 0, .4);
+}

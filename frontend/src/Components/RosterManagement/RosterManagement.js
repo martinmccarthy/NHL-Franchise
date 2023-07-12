@@ -36,6 +36,10 @@ function RosterManagement() {
     const [showTradeModal, setShowTradeModal] = useState(false);
     const [resultString, setResultString] = useState('');
     const [opposingTeamName, setOpposingTeamName] = useState('');
+
+    const allOpposingTeams = getAllOtherTeams();
+    const [tradeIndex, setTradeIndex] = useState(0);
+
     function getAllOtherTeams() {
         let otherTeams = [];
         for(let i = 0; i < teamHolder.length; i++) {
@@ -55,12 +59,15 @@ function RosterManagement() {
     useEffect(() => {
         setLineupString(tableStates[lineupIndex])
     }, [lineupIndex]);
+    useEffect(() => {
+        setTradingTeam(allOpposingTeams[tradeIndex])
+    }, [tradeIndex]);
 
     const handleOpen = () => setShowTradeModal(true);
     const handleClose = () => setShowTradeModal(false);
-  /* These two functions are for display purposes on the screen, the averageCapHits function
-     will probably be useful down the line to calculate a players caphit when signing them
-     to a contract. */
+    /* These two functions are for display purposes on the screen, the averageCapHits function
+       will probably be useful down the line to calculate a players caphit when signing them
+       to a contract. */
     function numberWithCommas(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -143,14 +150,7 @@ function RosterManagement() {
 
     function openTradeList() {
         setTrading(!trading);
-        setTradingTeam(getAllOtherTeams()[0]);
-    }
-
-    function handleTradeTeamSelect(team) {
-        setTradingTeam(team);
-        setOpposingTrade([]);
-        console.log(team);
-        forceUpdate();
+        setTradingTeam(allOpposingTeams[0]);
     }
 
     function setMyOffer(player) {
@@ -374,24 +374,40 @@ function RosterManagement() {
     function advanceLineupString() {
         if(lineupIndex === 2) {
             setLineupIndex(0);
+            return;
         }
-        else {
-            setLineupIndex(lineupIndex + 1);
-        }
+        setLineupIndex(lineupIndex + 1);
     }
 
     function revertLineupString() {
         if(lineupIndex === 0) {
             setLineupIndex(2);
+            return;
         }
-        else {
-            setLineupIndex(lineupIndex - 1);
-        }
+        setLineupIndex(lineupIndex - 1);
     }
 
     function checkIndex(index) {
         if(index % 2 === 1) return ' listItem1';
         return ' listItem0';
+    }
+
+    function incrementOpposingTeams() {
+        setOpposingTrade([]);
+        if(tradeIndex === allOpposingTeams.length - 1) {
+            setTradeIndex(0);
+            return;
+        }
+        setTradeIndex(tradeIndex + 1);
+    }
+
+    function revertOpposingTeams() {
+        setOpposingTrade([]);
+        if(tradeIndex === 0) {
+            setTradeIndex(allOpposingTeams.length - 1);
+            return;
+        }
+        setTradeIndex(tradeIndex - 1)
     }
 
     return(
@@ -442,10 +458,6 @@ function RosterManagement() {
             </div>}
             <br />
             {trading && <>
-                <h1>Select a team to trade with: </h1>
-                {getAllOtherTeams().map((team) => (
-                    <img onClick={() => handleTradeTeamSelect(team)} width="50em" key={team.abbreviation} src={team.logo} alt={team.name}/>
-                ))}
                 <div className="tradePanel">
                     <div className='myTeamTrading'>
                         <img src={myTeam.logo} alt={myTeam.abbreviation}  className="opposingLogo"/>
@@ -513,12 +525,16 @@ function RosterManagement() {
                         </div>
                     </div>
                 <div className="opposingTeamTrading">
-                    <img src={tradingTeam.logo} alt={tradingTeam.abbreviation}  className="opposingLogo"/>
-                        <div className="tableHeader">
-                            <h1 className="tableArrow" onClick={revertOpposingIndexBack}> {'<'} </h1>
-                            <h1>{opposingString}</h1>
-                            <h1 className="tableArrow" onClick={advanceOpposingIndexForward}> {'>'} </h1>
-                        </div>
+                    <div className="tableHeader logoHeader">
+                        <h1 className="tableArrow" onClick={revertOpposingTeams}> {'<'} </h1>
+                        <img src={tradingTeam.logo} alt={tradingTeam.abbreviation}  className="opposingLogo"/>
+                        <h1 className="tableArrow" onClick={incrementOpposingTeams}> {'>'} </h1>
+                    </div>
+                    <div className="tableHeader">
+                        <h1 className="tableArrow" onClick={revertOpposingIndexBack}> {'<'} </h1>
+                        <h1>{opposingString}</h1>
+                        <h1 className="tableArrow" onClick={advanceOpposingIndexForward}> {'>'} </h1>
+                    </div>
                     {opposingIndex === 0 && <div className="statsContainer">
                         <table className='statsTable'>
                         <tr className='tableHeadings fixed'>

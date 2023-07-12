@@ -1,5 +1,10 @@
 import teams, { getTeamId } from "@nhl-api/teams";
 import axios from 'axios';
+import {players} from "../Roster_JSON/players";
+import jsonData from "../Roster_JSON/teams.json"
+import {players as apiPlayers} from "@nhl-api/players";
+import {addDoc, collection, doc, setDoc, query, where} from "firebase/firestore"
+import { db } from "../db/firebase";
     
 /* checkGameLocation simply checks to see if the game is home or away and returns that, it's here
     to clean up the code since it's useful in more than one place, mainly displaying the calendar
@@ -188,6 +193,174 @@ export function getMonthFromString(mon){
 }
 
 
-export function removeAccents(str) {
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+export function removeAccents(playerName) {
+    return playerName.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}
+
+export function getPlayerMugshot(player, teamAbbr) {
+    console.log(teamAbbr);
+    console.log(player);
+    var foundPlayer = players.find(x => x.name === removeAccents(player));
+    var playerId;
+    if(foundPlayer) {
+        playerId = foundPlayer.id;
+    }
+
+    const baseUrl = 'https://assets.nhle.com/mugs/nhl/20222023/'
+    if(foundPlayer === undefined) return "https://assets.nhle.com/mugs/nhl/default-skater.png"
+    var url = baseUrl + teamAbbr + '/' + playerId + '.png'
+    console.log(url);
+    return url;
+}
+
+/*  will be useful in the future if i can find the player ids, right now
+    theres better things to do, this function simply adds the player
+    to the list of all players in the case that they weren't found
+    initially so that I don't need to manually do it (which i have to do rn) */
+function addToPlayers(playerName) {
+    var id = apiPlayers.getPlayerId(playerName);
+    console.log(playerName);
+    console.log(id);
+}
+
+export function returnAllForwards() {
+    var teams = jsonData.teams
+    var activePlayers = [];
+    for(var division in teams) {
+        var divisionHolder = teams[division];
+        for(var team in divisionHolder) {
+            var currTeam = divisionHolder[team];
+            for(let idx in currTeam.roster.forwards) {
+                let player = currTeam.roster.forwards[idx];
+                player.team = currTeam
+                activePlayers.push(player);
+            }
+        }
+    }
+
+    return activePlayers;
+}
+
+export function returnAllDefense() {
+    var teams = jsonData.teams
+    var activePlayers = [];
+    for(var division in teams) {
+        var divisionHolder = teams[division];
+        for(var team in divisionHolder) {
+            var currTeam = divisionHolder[team];
+            for(let idx in currTeam.roster.defense) {
+                let player = currTeam.roster.defense[idx];
+                player.team = currTeam
+                activePlayers.push(player);
+            }
+        }
+    }
+
+    return activePlayers;
+}
+
+export function returnAllGoalies() {
+    var teams = jsonData.teams
+    var activePlayers = [];
+    for(var division in teams) {
+        var divisionHolder = teams[division];
+        for(var team in divisionHolder) {
+            var currTeam = divisionHolder[team];
+            for(let idx in currTeam.roster.goalies) {
+                let player = currTeam.roster.goalies[idx];
+                player.team = currTeam
+                activePlayers.push(player);
+            }
+        }
+    }
+
+    return activePlayers;
+}
+
+
+function deleteTeamObjs(team) {
+    return {
+        name: team.name,
+        abbrevation: team.abbreviation,
+        colors: team.colors,
+        logo: team.logo
+    }
+}
+
+export async function returnAllActive() {
+    var teams = jsonData.teams
+    var activePlayers = [];
+    for(var division in teams) {
+        var divisionHolder = teams[division];
+        for(var team in divisionHolder) {
+            var currTeam = divisionHolder[team];
+            console.log(currTeam);
+            for(let idx in currTeam.roster.forwards) {
+                let player = currTeam.roster.forwards[idx];
+                let playerImage = getPlayerMugshot(player.name, currTeam.abbreviation);
+                let playerObj = {
+                    name: player.name,
+                    overall: player.overall,
+                    positions: player.positions,
+                    image: playerImage,
+                    age: player.age,
+                    team: deleteTeamObjs(currTeam)
+                }
+                activePlayers.push(playerObj);
+            }
+            for(let idx in currTeam.roster.defense) {
+                let player = currTeam.roster.defense[idx];
+                let playerImage = getPlayerMugshot(player.name, currTeam.abbreviation);
+                let playerObj = {
+                    name: player.name,
+                    overall: player.overall,
+                    positions: player.positions,
+                    image: playerImage,
+                    age: player.age,
+                    team: deleteTeamObjs(currTeam)
+                }
+                activePlayers.push(playerObj);
+            }
+            for(let idx in currTeam.roster.goalies) {
+                let player = currTeam.roster.goalies[idx];
+                let playerImage = getPlayerMugshot(player.name, currTeam.abbreviation);
+                let playerObj = {
+                    name: player.name,
+                    overall: player.overall,
+                    positions: player.positions,
+                    image: playerImage,
+                    age: player.age,
+                    team: deleteTeamObjs(currTeam)
+                }
+                activePlayers.push(playerObj);
+            }
+        }
+    }
+
+    // for(var i = 0; i < activePlayers.length; i++) {
+    //     console.log(activePlayers[i]);
+    //     await addDoc(collection(db, "players"), activePlayers[i]);
+    // }
+    return activePlayers;
+}
+
+function buildPath(route) {
+    var localPath = "http://localhost:2001/api" + route;
+    var productionPath = "https://hockeymanager.co/api" + route;
+    return (process.env.NODE_ENV === "development" ? localPath : productionPath)
+};
+
+
+export async function sendAPI(method, path, data = null) {    
+    const config = {
+        method,
+        url: buildPath(path),
+        params: '',
+        data: ''
+    }
+    // console.log(config);
+    if(method === 'get') config.params =  data;
+    else config.data = data;
+    const res = await axios(config);
+    return res;
 }

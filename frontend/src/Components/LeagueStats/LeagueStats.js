@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {useLocation} from "react-router-dom";
 import Navbar from '../Navbar/Navbar';
+import PlayerCard from '../PlayerCard/PlayerCard';
 
 function LeagueStats() {
     const location = useLocation();
@@ -98,6 +99,10 @@ function LeagueStats() {
     function getMyTeamLosses() {
         let myIndex = gameTeamHolder.findIndex(e => e.name === myTeam.name);
         return gameTeamHolder[myIndex].record.losses
+    }
+
+    function getFirstPlayer() {
+        
     }
 
     return(<div>

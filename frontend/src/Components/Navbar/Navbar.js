@@ -63,6 +63,7 @@ function Navbar({myTeam, teamHolder, currentDay}) {
           <p onClick={() => (goToReceiver('/app'))}>Home</p>
           <p onClick={() => goToReceiver('/roster')}>Roster Management</p>
           <p onClick={() => goToReceiver('/league')}>League Leaderboards</p>
+          <p onClick={() => goToReceiver('/store')}>Store</p>
         </div>
         <div class="blank"></div>
       </nav>
