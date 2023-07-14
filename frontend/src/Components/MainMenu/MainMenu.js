@@ -71,8 +71,9 @@ function MainMenu() {
     const createdTeam = {
       name: teamName,
       abbreviation: teamAbbr,
-      roster: {forwards: [], defense: [], goalies: []},
-      colors: [primaryColor.color, secondaryColor.color]
+      location: teamLocation,
+      roster: [],
+      colors: {primary: primaryColor.color, secondary: secondaryColor.color}
     }
 
     navigate('/setup', {state: createdTeam})
@@ -107,69 +108,6 @@ function MainMenu() {
     setTeams(teamArr);
     setMyTeam(teamArr[0])
     return teamArr;
-  }
-
-  function handleTeamSelect(team) {
-    setMyTeam(team);
-    forceUpdate();
-  }
-
-  function getStarted() {
-    setRosterLoaded(true);
-    navigate('/app', {state: {myTeam: myTeam, teamHolder: teamHolder, currentDay: currentDay}})
-  }
-
-
-  function hexToRgbA(hex, alpha){
-    var c;
-    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-        c= hex.substring(1).split('');
-        if(c.length== 3){
-            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-        }
-        c= '0x'+c.join('');
-        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
-    }
-    throw new Error('Bad Hex');
-}
-
-  function getTeamGradient (team) {
-    let primaryColors = [hexToRgbA(team.colors[0], .8), hexToRgbA(team.colors[1], .8)]
-    var style = {
-      color: '#fff',
-      backgroundColor: '#f4f1de',
-      background: `linear-gradient(to bottom, ${primaryColors.join(", 75%, ")})`,
-      cursor: 'pointer',
-      margin: '20px',
-      textAlign: 'center',
-      border: 'none',
-      borderRadius: '50%',
-      backgroundSize: '300% 100%',
-      transition: `all 0.3s ease-in`,
-      boxShadow: `0 1px 20px 0 ${hexToRgbA('#3d405b', .4)}`
-    }
-    return style;
-  }
-
-  function getTopPlayers(team) {
-    var roster = team.roster;
-    var fullTeamArr = []
-    for(let i = 0; i < roster.forwards.length; i++) {
-      fullTeamArr.push(roster.forwards[i])
-    }
-    for(let j = 0; j < roster.defense.length; j++) {
-      fullTeamArr.push(roster.defense[j])
-    }
-    for(let k = 0; k < roster.goalies.length; k++) {
-      fullTeamArr.push(roster.goalies[k])
-    }
-    // Sort players by rating in descending order
-    fullTeamArr.sort((a, b) => b.overall - a.overall);
-
-    // Get top three players
-    const topThree = fullTeamArr.slice(0, 3);
-
-    return topThree;
   }
 
   function getPrimaryStyle() {
@@ -219,6 +157,15 @@ function MainMenu() {
         <div className="logoContainer">
           <form ref={formRef} onSubmit={handleSubmit} className="form">
             <h1 className="formHeader">Create your team!</h1>
+            <label htmlFor="team_loc">Team Location:</label><br />
+            <input
+                type="text"
+                id="abbr"
+                name="team_loc"
+                value={teamLocation}
+                onChange={handleLocationChange}
+                required
+            />
             <label htmlFor="team_name">Team Name:</label><br />
             <input
                 type="text"
@@ -235,15 +182,6 @@ function MainMenu() {
                 name="team_abbr"
                 value={teamAbbr}
                 onChange={handleAbbrChange}
-                required
-            />
-            <label htmlFor="team_loc">Team Location:</label><br />
-            <input
-                type="text"
-                id="abbr"
-                name="team_loc"
-                value={teamLocation}
-                onChange={handleLocationChange}
                 required
             />
             <label htmlFor="primaryColor">Team Primary Color:</label>

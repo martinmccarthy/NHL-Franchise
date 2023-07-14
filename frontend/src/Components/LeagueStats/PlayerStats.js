@@ -1,14 +1,23 @@
-import {useState} from 'react';
+import { useEffect, useState } from 'react';
+import * as util from '../util';
 
 function PlayerStats(props) {
-    let team = props.givenTeam;
-
-    function getForwards() { return team.roster.forwards; }
-    function getDefense() { return team.roster.defense; }
+    let team = props.team;
 
     function checkIndex(index) {
         if(index % 2 === 1) return ' listItem1';
         return ' listItem0';
+    }
+
+    function positionsToString(positions) {
+        var str = "";
+        for(let i = 0; i < positions.length; i++) {
+            str += positions[i];
+            if(i < positions.length - 1) {
+                str += ", "
+            }
+        }
+        return str;
     }
 
     return(
@@ -17,24 +26,14 @@ function PlayerStats(props) {
                 <table className='statsTable'>
                     <tr className="tableHeadings fixed">
                         <th>Player</th>
-                        <th>Goals</th>
-                        <th>Assists</th>
-                        <th>Points</th>
+                        <th>Overall</th>
+                        <th>Positions</th>
                     </tr>
-                    {getForwards().map((player, index) => (
+                    {team.roster.map((player, index) => (
                     <tr className={"rowData" + checkIndex(index)} onClick={() => props.activatePlayerModal(player)}>
                         <td>{player.name}</td>
-                        <td>{player.goals}</td>
-                        <td>{player.assists}</td>
-                        <td>{(player.goals + player.assists)}</td>
-                    </tr>
-                    ))}
-                    {getDefense().map((player, index) => (
-                    <tr className={"rowData" + checkIndex(team.roster.forwards.length + index)} onClick={() => props.activatePlayerModal(player)}>
-                        <td>{player.name}</td>
-                        <td>{player.goals}</td>
-                        <td>{player.assists}</td>
-                        <td>{(player.goals + player.assists)}</td>
+                        <td>{player.overall}</td>
+                        <td>{positionsToString(player.positions)}</td>
                     </tr>
                     ))}
                 </table>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { returnAllDefense, returnAllForwards, returnAllGoalies } from "../util";
+import { queryPlayersByPosition, returnAllDefense, returnAllForwards, returnAllGoalies } from "../util";
 import PlayerCard from "../PlayerCard/PlayerCard";
 import { query, where, collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
@@ -40,32 +40,13 @@ function Setup() {
     async function openPack() {
         var allPlayers = [];
 
-        const forwardQuery = query(collection(db, 'players'), where('positions', 'array-contains-any', ['LW', 'C', 'RW']));
-        const forwardQuerySnapshot = await getDocs(forwardQuery);
-        var allActiveForwards = [];
-        forwardQuerySnapshot.forEach((doc) => {
-            let player = doc.data();
-            allActiveForwards.push(player);
-        });
-        const defenseQuery = query(collection(db, 'players'), where('positions', 'array-contains-any', ['LD', 'RD']));
-        const defenseQuerySnapshot = await getDocs(defenseQuery);
-        var allActiveDefense = [];
-        defenseQuerySnapshot.forEach((doc) => {
-            let player = doc.data();
-            allActiveDefense.push(player);
-        });
-        const goalieQuery = query(collection(db, 'players'), where('positions', 'array-contains-any', ['G']));
-        const goalieQuerySnapshot = await getDocs(goalieQuery);
-        var allActiveGoalies = [];
-        goalieQuerySnapshot.forEach((doc) => {
-            let player = doc.data();
-            allActiveGoalies.push(player);
-        });
-
+        const forwardQuery = await queryPlayersByPosition(['LW', 'RW', 'C']);
+        const defenseQuery = await queryPlayersByPosition(['LD', 'RD']);
+        const goalieQuery = await queryPlayersByPosition(['G']);
         var forwards = [];
         while(forwards.length !== 12) {
-            let random = getRandomInt(0, allActiveForwards.length);
-            var plyr = allActiveForwards[random];
+            let random = getRandomInt(0, forwardQuery.length);
+            let plyr = forwardQuery[random];
             if(forwards.find(x => x.name === plyr.name) !== undefined || plyr.overall >= 86) continue;
             forwards.push(plyr);
             allPlayers.push(plyr);
@@ -73,8 +54,8 @@ function Setup() {
 
         var defense = [];
         while(defense.length !== 6) {
-            let random = getRandomInt(0, allActiveDefense.length);
-            var plyr = allActiveDefense[random];
+            let random = getRandomInt(0, defenseQuery.length);
+            let plyr = defenseQuery[random];
             if(defense.find(x => x.name === plyr.name) !== undefined || plyr.overall >= 86) continue;
             defense.push(plyr);
             allPlayers.push(plyr);
@@ -82,8 +63,8 @@ function Setup() {
 
         var goalies = [];
         while(goalies.length !== 2) {
-            let random = getRandomInt(0, allActiveGoalies.length);
-            var plyr = allActiveGoalies[random];
+            let random = getRandomInt(0, goalieQuery.length);
+            let plyr = goalieQuery[random];
             if(goalies.find(x => x.name === plyr.name) !== undefined || plyr.overall >= 86) continue;
             goalies.push(plyr);
             allPlayers.push(plyr);
@@ -92,7 +73,6 @@ function Setup() {
     }
 
     function beginGame() {
-        // Set a state to pass and then do create.
         team.roster = openedPlayers;
         navigate('/register', {state: team});
     }

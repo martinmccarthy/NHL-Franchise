@@ -6,9 +6,10 @@ import LeagueStats from './Components/LeagueStats/LeagueStats';
 import Store from './Components/Store/Store';
 import Setup from './Components/Setup/Setup';
 import Login from './Components/Login/Login';
-import CreateAccount from './Components/CreateAccount/CreateAccount';
+import Register from './Components/Register/Register';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
+import './App.css';
 
 function App() {
   const {currentUser} = useContext(AuthContext);
@@ -16,8 +17,6 @@ function App() {
   const RequireAuth = ({children}) => {
     return currentUser ? (children) : <Navigate to="/login" />
   }
-
-  console.log(currentUser);
 
   return (      
     <Router>
@@ -45,7 +44,7 @@ function App() {
         }/>
         <Route path='/setup' element={<Setup />} />
         <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<CreateAccount />} />
+        <Route path='/register' element={<Register />} />
       </Routes>
     </Router>    
   );

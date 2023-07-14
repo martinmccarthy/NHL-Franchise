@@ -1,9 +1,11 @@
 import { useContext, useState } from "react";
-import './Login.css'
-
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../db/firebase";
+import { auth, db } from "../../db/firebase";
 import { AuthContext } from "../../context/AuthContext";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import './Login.css'
+import { queryPlayer } from "../util";
 
 function Login() {
     const [errorMsg, setErrorMsg] = useState('');
@@ -11,6 +13,7 @@ function Login() {
     const [password, setPassword] = useState('');
 
     const {dispatch} = useContext(AuthContext);
+    const navigate = useNavigate();
 
     async function doLogin(e) {
         e.preventDefault();
@@ -24,10 +27,20 @@ function Login() {
         }
 
         signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-            const user = userCredential.user;
-            dispatch({type: "LOGIN", payload:user});
-            console.log(user);
+        .then(async (userCredential) => {
+            const uid = userCredential.user.uid;
+
+            let user = await getDoc(doc(collection(db, 'users'), uid));
+
+            console.log(user.data());
+            let payload = user.data();
+            payload.id = uid;
+            console.log(payload);
+            for(let i = 0; i < payload.team.roster.length; i++) {
+                payload.team.roster[i] = await queryPlayer(payload.team.roster[i]);
+            }
+            dispatch({type: "LOGIN", payload:payload});
+            navigate('/app');
         })
         .catch((error) => {
             const errorCode = error.code;

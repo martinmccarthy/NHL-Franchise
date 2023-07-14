@@ -3,7 +3,7 @@ import axios from 'axios';
 import {players} from "../Roster_JSON/players";
 import jsonData from "../Roster_JSON/teams.json"
 import {players as apiPlayers} from "@nhl-api/players";
-import {addDoc, collection, doc, setDoc, query, where} from "firebase/firestore"
+import {addDoc, collection, doc, setDoc, query, where, getDocs, getDoc} from "firebase/firestore"
 import { db } from "../db/firebase";
     
 /* checkGameLocation simply checks to see if the game is home or away and returns that, it's here
@@ -363,4 +363,39 @@ export async function sendAPI(method, path, data = null) {
     else config.data = data;
     const res = await axios(config);
     return res;
+}
+
+/*  This function is simple enough, enter the positions as an array if you want a specific position,
+    or nothing if you want to query all of them. This can be scaled to add specific queries if the player
+    might be in a certain collection say "legacy players" or something of that nature. Idk though I haven't
+    implemented these things yet. */
+export async function queryPlayersByPosition(positions = null) {
+    var allPlayers = [];
+    var q;
+    if(positions === null) {
+        q = query(collection(db, 'players'));
+    }
+    else {
+        q = query(collection(db, 'players'), where('positions', 'array-contains-any', positions));
+    }
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        let player = doc.data();
+        player.id = doc.id;
+        allPlayers.push(player);
+    });
+
+    return allPlayers;
+}
+
+export async function queryPlayer(playerId) {
+    if(playerId === null) return;
+    const playerCol = collection(db, 'players');
+    const docRef = doc(playerCol, playerId);
+    const snap = await getDoc(docRef);
+    if(snap.exists()) {
+        return snap.data();
+    }
+
+    return null;
 }

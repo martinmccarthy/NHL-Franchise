@@ -1,16 +1,25 @@
-import './Navbar.css';
-
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
+import { useContext } from 'react';
+import {FaHockeyPuck} from "react-icons/fa";
 
-function Navbar({myTeam, teamHolder, currentDay}) {
+import './Navbar.css';
+import { Dropdown } from 'react-bootstrap';
+
+function Navbar() {
+  const {currentUser} = useContext(AuthContext);
+  const team = currentUser.team;
   const navigate = useNavigate();
 
   const goToReceiver = (link) => {
-    navigate(link, {state: {myTeam: myTeam, teamHolder: teamHolder, currentDay: currentDay}});
+    navigate(link);
   }
 
-  function getTeamGradient (team) {
-    let primaryColors = [team.colors[0], team.colors[1]]
+  function convertColorToString(color) { return "rgba(" + color.r + "," + color.g + "," + color.b + ",1)"; }
+
+  function getTeamGradient () {
+    let primaryColors = [convertColorToString(team.colors.primary), convertColorToString(team.colors.secondary)]
+
     var style = {
       color: '#fff',
       background: `linear-gradient(to right, ${primaryColors.join(", 75%, ")})`,
@@ -25,7 +34,7 @@ function Navbar({myTeam, teamHolder, currentDay}) {
 
   return(
   <header>
-    <div class="header" style={getTeamGradient(myTeam)}>
+    <div class="header" style={getTeamGradient(team)}>
       <button class="menu-btn" aria-label="Open Menu">
         <svg
           height="24"
@@ -40,32 +49,30 @@ function Navbar({myTeam, teamHolder, currentDay}) {
         </svg>
       </button>
       <div class="logo">
-        <img className="hoverAbove" key={myTeam.abbreviation} src={myTeam.logo} alt={myTeam.name}/>
+        <h1>{team.location} {team.name}</h1>
+        {/* <img className="hoverAbove" key={team.abbreviation} src={myTeam.logo} alt={myTeam.name}/> */}
       </div>
       <nav class="menu">
         <div class="drawer">
-          <button class="close-btn" aria-label="Close Menu">
-            <svg
-              height="24"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-label="Close Menu"
-              role="img"
-            >
-              <path d="M0 0h24v24H0z" fill="none"></path>
-              <path
-                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-              ></path>
-            </svg>
-          </button>
-          
-          <p onClick={() => (goToReceiver('/app'))}>Home</p>
-          <p onClick={() => goToReceiver('/roster')}>Roster Management</p>
-          <p onClick={() => goToReceiver('/league')}>League Leaderboards</p>
-          <p onClick={() => goToReceiver('/store')}>Store</p>
+          <Dropdown>
+            <Dropdown.Toggle variant="outline-light" id="dropdown-basic">
+              Menu
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={() => (goToReceiver('/app'))}>Home</Dropdown.Item>
+              <Dropdown.Item onClick={() => (goToReceiver('/store'))}>Store</Dropdown.Item>
+              <Dropdown.Item onClick={() => (goToReceiver('/roster'))}>Roster</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown>
+            <Dropdown.Toggle variant="outline-light" id="dropdown-basic">
+              {currentUser.username}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item><FaHockeyPuck /> {currentUser.pucks}</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
-        <div class="blank"></div>
       </nav>
     </div>
   </header>

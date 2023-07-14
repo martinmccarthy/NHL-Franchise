@@ -6,6 +6,7 @@ import {getDocs, collection, query, where} from "firebase/firestore"
 
 import "./Store.css"
 import { db } from "../../db/firebase";
+import Navbar from "../Navbar/Navbar";
 
 function Store() {
     const [openedPlayers, setOpenedPlayers] = useState([]);
@@ -53,6 +54,7 @@ function Store() {
     
     return(
         <div>
+            <Navbar />
             <button onClick={openPack}>Open Pack</button>
             {openedPlayers.length > 0 && <div className="openedPlayers">
                 {openedPlayers.map(player => (

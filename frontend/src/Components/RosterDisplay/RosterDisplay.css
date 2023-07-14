@@ -1,0 +1,36 @@
+.players {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  
+  .playerContainer {
+    margin: 5px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+  .forwards {
+    width: calc(33.33% - 10px);
+    background-color: #f4f8ff;
+  }
+
+  .defense {
+    width: calc(50% - 10px);
+    background-color: #ffffff;
+  }
+
+  .goalies {
+    width: calc(100% - 10px);
+    background-color: #f4f8ff;
+  }
+  
+  .playerContainer p {
+    margin: 0;
+    padding: 5px;
+    font-weight: bold;
+  }
