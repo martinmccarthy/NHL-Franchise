@@ -15,6 +15,10 @@ function Login() {
     const {dispatch} = useContext(AuthContext);
     const navigate = useNavigate();
 
+    /*  Login takes the event as param to prevent refresh, then
+        sends info to firebase authentication for verification,
+        as of right now it uses email to check, but we could
+        use username to sign in as well if we added a simple DB query */
     async function doLogin(e) {
         e.preventDefault();
         if(email.length === 0) {
@@ -32,12 +36,17 @@ function Login() {
 
             let user = await getDoc(doc(collection(db, 'users'), uid));
 
-            console.log(user.data());
             let payload = user.data();
             payload.id = uid;
-            console.log(payload);
+            /*  To avoid continuously querying the DB for user players we 
+                just query them all on login and store them into local storage.
+                This can be a bit of a pain to manage because of the difference
+                between storing in the DB and stroing locally, but maybe I can
+                look into references with Firebase. */
             for(let i = 0; i < payload.team.roster.length; i++) {
-                payload.team.roster[i] = await queryPlayer(payload.team.roster[i]);
+                let id = payload.team.roster[i];
+                payload.team.roster[i] = await queryPlayer(id);
+                payload.team.roster[i].id = id;
             }
             dispatch({type: "LOGIN", payload:payload});
             navigate('/app');
@@ -45,6 +54,8 @@ function Login() {
         .catch((error) => {
             const errorCode = error.code;
             const errorMessage = error.message;
+            /*  I should adjust this with better messages based on the code, but as
+                of right now I'm focused on other things. */
             setErrorMsg(errorCode + " " + errorMessage);
         })
     }

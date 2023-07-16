@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { returnAllActive } from "../util";
 import PlayerCard from "../PlayerCard/PlayerCard";
-import {getDocs, collection, query, where} from "firebase/firestore"
-
-
-import "./Store.css"
+import {getDocs, collection, query, where, updateDoc, doc} from "firebase/firestore"
 import { db } from "../../db/firebase";
 import Navbar from "../Navbar/Navbar";
+import Pack from "./Pack/Pack";
+import { AuthContext } from "../../context/AuthContext";
+
+import "./Store.css"
 
 function Store() {
     const [openedPlayers, setOpenedPlayers] = useState([]);
+
+    const {currentUser, dispatch} = useContext(AuthContext);
+
+    var pucks = currentUser.pucks;
 
     function getRandomInt(min, max) {
         var range = max - min + 1;
@@ -33,7 +38,6 @@ function Store() {
     }
           
     async function openPack(packLength) {
-        console.log(returnAllActive());
         const players = await getDocs(collection(db, "players"));
         var allPlayers = [];
         players.forEach(doc => {
@@ -41,21 +45,41 @@ function Store() {
             player.id = doc.id;
             allPlayers.push(player);
         })
-        console.log(allPlayers);
-        // var allActive = returnAllActive();
+        var tempUser = Object.assign({}, currentUser);
         var packedPlayers = [];
         for(var i = 0; i < packLength; i++) {
             let random = getRandomInt(0, allPlayers.length);
             packedPlayers.push(allPlayers[random]);
+            tempUser.team.roster.push(allPlayers[random]);
         }
-        console.log(packedPlayers);
+
         setOpenedPlayers(packedPlayers);
+        return tempUser;
+    }
+
+    async function purchasePack(packPrice, packLength) {
+        if(pucks < packPrice) return;
+        var updatedUser = await openPack(packLength);
+        pucks -= packPrice;
+        updatedUser.pucks -= pucks;
+        let ids = [];
+        for(let i = 0; i < updatedUser.team.roster.length; i++) {
+            ids.push(updatedUser.team.roster[i].id)
+        }
+        var dbPayload = Object.assign({}, updatedUser);
+        dbPayload.team = Object.assign({}, updatedUser.team);
+        dbPayload.team.roster = ids;
+        console.log('payload sent to database: ', dbPayload);
+        console.log('payload sent to local: ', updatedUser)
+        var ref = doc(db, 'users', currentUser.id);
+        await updateDoc(ref, dbPayload);
+        dispatch({type: "UPDATE", payload:updatedUser});
     }
     
     return(
         <div>
             <Navbar />
-            <button onClick={openPack}>Open Pack</button>
+            <Pack purchasePack={purchasePack} />
             {openedPlayers.length > 0 && <div className="openedPlayers">
                 {openedPlayers.map(player => (
                     <div className="playerCardContainer">

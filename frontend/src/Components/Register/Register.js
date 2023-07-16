@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { queryPlayer } from "../util";
 
 function CreateAccount() {
     const [errorMsg, setErrorMsg] = useState('');
@@ -42,7 +43,7 @@ function CreateAccount() {
         }
 
         createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
             const user = userCredential.user;
 
             playerTeam.roster = returnRosterIds(playerTeam.roster);
@@ -56,10 +57,14 @@ function CreateAccount() {
 
             const userCollection = collection(db, 'users');
             const userDocRef = doc(userCollection, user.uid);
-            setDoc(userDocRef, userData).then((res) => {
-                console.log(res);
+            setDoc(userDocRef, userData).then(async (res) => {
                 let payload = userData;
                 payload.id = user.uid;
+                for(let i = 0; i < payload.team.roster.length; i++) {
+                    let id = payload.team.roster[i];
+                    payload.team.roster[i] = await queryPlayer(id);
+                    payload.team.roster[i].id = id;
+                }
                 dispatch({type: "LOGIN", payload: payload});
                 navigate('/app');
 

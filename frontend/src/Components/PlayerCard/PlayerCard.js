@@ -5,14 +5,12 @@ function PlayerCard(props) {
     var player = props.player;
     function getOverallColor() {
         var ovr = player.overall;
-        console.log(ovr);
         
         if(ovr >= 90) return {backgroundColor: "blue"};
         if(ovr >= 80) return {backgroundColor: "gold"};
         if(ovr >= 70) return {backgroundColor: "grey"};
         if(ovr >= 60) return {backgroundColor: "brown"};
         return {backgroundColor: "black"};
-        
     }
 
     function hexToRgbA(hex, alpha){

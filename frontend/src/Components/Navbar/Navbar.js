@@ -7,7 +7,7 @@ import './Navbar.css';
 import { Dropdown } from 'react-bootstrap';
 
 function Navbar() {
-  const {currentUser} = useContext(AuthContext);
+  const {currentUser, dispatch} = useContext(AuthContext);
   const team = currentUser.team;
   const navigate = useNavigate();
 
@@ -25,12 +25,16 @@ function Navbar() {
       background: `linear-gradient(to right, ${primaryColors.join(", 75%, ")})`,
       backgroundSize: '200% 10%',
       transition: `all 0.3s ease-in`,
-      boxShadow: `0 5px 20px 0 rgb(32, 38, 57)`,
+      boxShadow: `0 1px 10px 0 rgba(32, 38, 57, .24)`,
       width: '100%'
     }
     return style;
   }
 
+  function doLogout() {
+    dispatch("LOGOUT");
+    navigate('/');
+  }
 
   return(
   <header>
@@ -70,6 +74,7 @@ function Navbar() {
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item><FaHockeyPuck /> {currentUser.pucks}</Dropdown.Item>
+              <Dropdown.Item onClick={() => (doLogout())}>Logout</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </div>

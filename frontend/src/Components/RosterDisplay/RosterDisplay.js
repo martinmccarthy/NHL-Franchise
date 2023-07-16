@@ -4,7 +4,7 @@ import PlayerCard from "../PlayerCard/PlayerCard";
 
 import "./RosterDisplay.css"
 
-function RosterDisplay() {
+function RosterDisplay(props) {
     const {currentUser} = useContext(AuthContext);
 
     const team = currentUser.team;
@@ -41,13 +41,13 @@ function RosterDisplay() {
 
     return(<div className="players">
         {getForwards().map((player) => (
-            <div className="playerContainer forwards"><p>{player.name}</p></div>
+            <div className="playerContainer forwards"><p onClick={() => props.activatePlayerModal(player)}>{player.name}</p></div>
         ))}
         {getDefense().map((player) => (
-            <div className="playerContainer defense"><p>{player.name}</p></div>
+            <div className="playerContainer defense"><p onClick={() => props.activatePlayerModal(player)}>{player.name}</p></div>
         ))}
         {getGoalies().map((player) => (
-            <div className="playerContainer goalies"><p>{player.name}</p></div>
+            <div className="playerContainer goalies"><p onClick={() => props.activatePlayerModal(player)}>{player.name}</p></div>
         ))}
     </div>)
 }

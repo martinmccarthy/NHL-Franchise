@@ -2,6 +2,10 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
+    background-color: white;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 20px;
   }
   
   .playerContainer {
@@ -21,7 +25,7 @@
 
   .defense {
     width: calc(50% - 10px);
-    background-color: #ffffff;
+    background-color: #e3eeff;
   }
 
   .goalies {
