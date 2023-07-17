@@ -46,59 +46,39 @@ export function removePlayer(roster, player) {
     return roster;
 }
 
-export function calculateTeamRating(team) {
-    let totalRating = 0;
-    let topPlayersRating = 0;
-    let topPlayersCount = 0;
+export function calculateTeamRating(lineup) {
+    let overall = 0;
+    for(let i = 0; i < lineup.length; i++) {
+        overall += lineup[i].overall;
+    }
 
-    let rosterSize = team.roster.forwards.length + team.roster.defense.length + team.roster.goalies.length
+    return Math.floor((overall / (100 * 20)) * 100);
+};
 
-    team.roster.forwards.forEach((player) => {
-      totalRating += player.overall;
+export function calculateForwardRating(lineup) {
+    let overall = 0;
+    for(let i = 0; i < lineup.length; i++) {
+        overall += lineup[i].overall;
+    }
 
-      // Check if player is a top player
-      if (player.overall >= 80) {
-        topPlayersRating += player.overall;
-        topPlayersCount++;
-      }
-    });
+    return Math.floor((overall / (100 * 12)) * 100);
+}
+export function calculateDefenseRating(lineup) {
+    let overall = 0;
+    for(let i = 0; i < lineup.length; i++) {
+        overall += lineup[i].overall;
+    }
 
-    team.roster.defense.forEach((player) => {
-        totalRating += player.overall;
-  
-        // Check if player is a top player
-        if (player.rating >= 80) {
-          topPlayersRating += player.overall;
-          topPlayersCount++;
-        }
-    });
+    return Math.floor((overall / (100 * 6)) * 100);
+}
+export function calculateGoalieRating(lineup) {
+    let overall = 0;
+    for(let i = 0; i < lineup.length; i++) {
+        overall += lineup[i].overall;
+    }
 
-    team.roster.goalies.forEach((player) => {
-        totalRating += player.overall;
-
-        // Check if player is a top player
-        if (player.overall >= 85) {
-            topPlayersRating += player.overall;
-            topPlayersCount++;
-        }
-    });
-
-    // Calculate weighted average of top player ratings
-    const topPlayerRatingAverage = topPlayersCount > 0 ? topPlayersRating / topPlayersCount : 0;
-    const topPlayerRatingWeight = 1.25; // Change this value to adjust emphasis on top players
-    const weightedTopPlayerRating = topPlayerRatingAverage * topPlayerRatingWeight;
-
-    // Calculate overall team rating
-    const overallRating = (totalRating + weightedTopPlayerRating) / (rosterSize + topPlayerRatingWeight);
-
-    // Adjust overall team rating to be closer to 100
-    const adjustedRating = overallRating + 5; // Change this value to adjust the adjustment amount
-
-    // Ensure adjusted rating is no greater than 100
-    const finalRating = Math.min(adjustedRating, 100);
-
-    return Math.round(finalRating);
-  };
+    return Math.floor((overall / (100 * 2)) * 100);
+}
 
 async function getActiveTeams() {
     var currentTeams = teams.filter(team => team.isActive === true);

@@ -11,9 +11,9 @@ function RosterDisplay(props) {
 
     function getForwards() {
         var forwards = [];
-        for(let i = 0; i < team.roster.length; i++) {
-            if(team.roster[i].positions.includes("LW") || team.roster[i].positions.includes("RW") || team.roster[i].positions.includes("C")) {
-                forwards.push(team.roster[i]);
+        for(let i = 0; i < team.lineup.length; i++) {
+            if(team.lineup[i].positions.includes("LW") || team.lineup[i].positions.includes("RW") || team.lineup[i].positions.includes("C")) {
+                forwards.push(team.lineup[i]);
             }
         }
         return forwards;
@@ -21,9 +21,9 @@ function RosterDisplay(props) {
 
     function getDefense() {
         var defense = [];
-        for(let i = 0; i < team.roster.length; i++) {
-            if(team.roster[i].positions.includes("LD") || team.roster[i].positions.includes("RD")) {
-                defense.push(team.roster[i]);
+        for(let i = 0; i < team.lineup.length; i++) {
+            if(team.lineup[i].positions.includes("LD") || team.lineup[i].positions.includes("RD")) {
+                defense.push(team.lineup[i]);
             }
         }
         return defense;
@@ -31,9 +31,9 @@ function RosterDisplay(props) {
 
     function getGoalies() {
         var goalies = [];
-        for(let i = 0; i < team.roster.length; i++) {
-            if(team.roster[i].positions.includes("G")) {
-                goalies.push(team.roster[i]);
+        for(let i = 0; i < team.lineup.length; i++) {
+            if(team.lineup[i].positions.includes("G")) {
+                goalies.push(team.lineup[i]);
             }
         }
         return goalies;

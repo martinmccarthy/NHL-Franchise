@@ -1,14 +1,20 @@
 import { Routes, Route, BrowserRouter as Router, Navigate} from 'react-router-dom'
+
+/* Imports all of the main components of the website */
 import MainMenu from './Components/MainMenu/MainMenu';
-import RosterManagement from './Components/RosterManagement/RosterManagement';
 import GameLanding from './Components/GameLanding/GameLanding';
 import LeagueStats from './Components/LeagueStats/LeagueStats';
 import Store from './Components/Store/Store';
 import Setup from './Components/Setup/Setup';
 import Login from './Components/Login/Login';
 import Register from './Components/Register/Register';
+import Play from './Components/Play/Play';
+import Roster from './Components/RosterManagement/Roster';
+
+/* Imports necessary components for managing user data */
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
+
 import './App.css';
 
 function App() {
@@ -16,6 +22,11 @@ function App() {
 
   const RequireAuth = ({children}) => {
     return currentUser ? (children) : <Navigate to="/login" />
+  }
+
+  /* can be useful to redirect back to home page */
+  const NonAuthentication = ({children}) => {
+    return !currentUser ? (children) : <Navigate to="/" />
   }
 
   return (      
@@ -29,7 +40,7 @@ function App() {
         }/>
         <Route path='/roster' element={
           <RequireAuth>
-            <RosterManagement />
+            <Roster />
           </RequireAuth>
         } />
         <Route path='/league' element={          
@@ -40,6 +51,11 @@ function App() {
         <Route path='/store' element={
           <RequireAuth>
             <Store />
+          </RequireAuth>
+        }/>
+        <Route path='/play' element={
+          <RequireAuth>
+            <Play />
           </RequireAuth>
         }/>
         <Route path='/setup' element={<Setup />} />

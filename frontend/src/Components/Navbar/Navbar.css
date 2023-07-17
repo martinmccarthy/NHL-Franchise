@@ -36,6 +36,8 @@
     height: var(--header-height);
     padding-right: 100px;
   }
+
+
   .header .menu .drawer p {
     text-transform: capitalize;
     transition: all 0.1s linear;
@@ -134,3 +136,17 @@
     }
   }
 
+
+  .rightElement {
+    margin-right: 15px;
+  }
+
+  .toggle {
+    background-color: #f4f8ff;
+    color: black;
+  }
+
+  .toggle:hover {
+    background-color: #e3eeff;
+    color: black;
+  }

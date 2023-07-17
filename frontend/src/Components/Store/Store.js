@@ -14,8 +14,6 @@ function Store() {
 
     const {currentUser, dispatch} = useContext(AuthContext);
 
-    var pucks = currentUser.pucks;
-
     function getRandomInt(min, max) {
         var range = max - min + 1;
         var byteArrayLength = Math.ceil(Math.log2(range) / 8); // Calculate the number of bytes needed based on the range
@@ -58,10 +56,12 @@ function Store() {
     }
 
     async function purchasePack(packPrice, packLength) {
+        let pucks = currentUser.pucks;
         if(pucks < packPrice) return;
         var updatedUser = await openPack(packLength);
         pucks -= packPrice;
-        updatedUser.pucks -= pucks;
+        updatedUser.pucks = pucks;
+        console.log(updatedUser);
         let ids = [];
         for(let i = 0; i < updatedUser.team.roster.length; i++) {
             ids.push(updatedUser.team.roster[i].id)
@@ -73,7 +73,7 @@ function Store() {
         console.log('payload sent to local: ', updatedUser)
         var ref = doc(db, 'users', currentUser.id);
         await updateDoc(ref, dbPayload);
-        dispatch({type: "UPDATE", payload:updatedUser});
+        dispatch({type: "LOGIN", payload:updatedUser});
     }
     
     return(

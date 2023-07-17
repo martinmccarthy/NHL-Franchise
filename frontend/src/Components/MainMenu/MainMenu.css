@@ -1,5 +1,4 @@
 h1 {
-  font-family: 'Archivo Black', sans-serif;
 }
 
 html, body { 
@@ -23,6 +22,7 @@ html, body {
   align-items: center;
   justify-content: center;
   padding-bottom: 2em;
+  
 }
 
 .logos {
@@ -93,38 +93,6 @@ html, body {
   justify-items: center;
 }
 
-.myTeamTrading {
-  width: 50%;
-}
-.opposingTeamTrading {
-  width: 50%;
-}
-
-
-.tradeExecute {
-  width: 100%;
-}
-
-.playerOverall {
-  padding: 6px;
-}
-
-.buttonPadding {
-  margin-top: 15px;
-}
-
-.hoverAbove {
-  z-index: 1
-}
-.glow {
-  z-index:0;
-  transform: scale(1.10) translate(-50%, -50%);
-  -webkit-transform: scale(2) translate(-50%, -50%);
-  filter: brightness(0) invert(1) blur(10px);
-  -webkit-filter: brightness(0) invert(1) blur(10px);
-  opacity:1;
-}
-
 .form {
   display: flex;
   flex-direction: column;
@@ -134,7 +102,6 @@ html, body {
   padding: 2em;
   border-radius: 1em;
   color: #32383d;
-  height: 75vh;
   overflow: scroll;
   margin: 1em;
 }
@@ -193,4 +160,33 @@ html, body {
   float: left;
   margin: 5px;
   border: 2px solid rgba(0, 0, 0, .4);
+}
+
+.signinButton {
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  float: right;
+  margin-right: 25px;
+  transition: ease-in .2s;
+}
+
+.signinButton:hover {
+  color: #4b5f7e;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background-color: #3d405b;
+  color: #f3f6f4;
+  padding: 5px;
+}
+
+.title {
+  font-family: 'Ultra';
+}
+
+.title h1 {
+  margin: 0;
 }

@@ -60,11 +60,14 @@ function CreateAccount() {
             setDoc(userDocRef, userData).then(async (res) => {
                 let payload = userData;
                 payload.id = user.uid;
+                let tempLineup = [];
                 for(let i = 0; i < payload.team.roster.length; i++) {
                     let id = payload.team.roster[i];
                     payload.team.roster[i] = await queryPlayer(id);
                     payload.team.roster[i].id = id;
+                    tempLineup.push(payload.team.roster[i]);
                 }
+                payload.team.lineup = tempLineup;
                 dispatch({type: "LOGIN", payload: payload});
                 navigate('/app');
 

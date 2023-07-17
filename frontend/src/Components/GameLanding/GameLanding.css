@@ -10,8 +10,6 @@ html {
     display: flex;
 }
 
-  
-
 .rowData {
     padding: 1em;
     cursor: pointer;
@@ -76,9 +74,9 @@ html {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-  }
+}
   
-  .gameplayElement {
+.gameplayElement {
     margin: 5px;
     height: 50px;
     display: flex;
@@ -92,12 +90,16 @@ html {
     transition: .2s ease-in;
 }
   
-  .gameplayElement p {
+.gameplayElement p {
     margin: 0;
     padding: 5px;
     font-weight: bold;
-  }
+}
 
-  .gameplayElement:hover {
+.gameplayElement:hover {
     color: white;
-  }
+}
+
+.overallContainer h1 {
+    font-size: 20px;
+}

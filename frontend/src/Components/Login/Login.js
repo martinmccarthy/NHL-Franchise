@@ -43,11 +43,18 @@ function Login() {
                 This can be a bit of a pain to manage because of the difference
                 between storing in the DB and stroing locally, but maybe I can
                 look into references with Firebase. */
+            let tempLineup = [];
             for(let i = 0; i < payload.team.roster.length; i++) {
                 let id = payload.team.roster[i];
                 payload.team.roster[i] = await queryPlayer(id);
                 payload.team.roster[i].id = id;
+                let inLineup = payload.team.lineup.findIndex(id);
+                if(inLineup > -1) {
+                    tempLineup.push(payload.team.roster[i]);
+                }
             }
+            payload.team.lineup = tempLineup;
+
             dispatch({type: "LOGIN", payload:payload});
             navigate('/app');
         })

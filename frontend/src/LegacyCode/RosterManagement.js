@@ -1,4 +1,4 @@
-import * as utils from '../util';
+import * as utils from '../Components/util';
 import { useState, useCallback, useEffect } from 'react';
 import { ListManager } from 'react-beautiful-dnd-grid';
 import {useLocation} from "react-router-dom";
@@ -6,7 +6,7 @@ import { ProgressBar } from "react-bootstrap";
 import { Modal } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
 
-import Navbar from '../Navbar/Navbar';
+import Navbar from '../Components/Navbar/Navbar';
 
 import './Roster.css'
 

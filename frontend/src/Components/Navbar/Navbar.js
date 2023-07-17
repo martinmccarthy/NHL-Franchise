@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {FaHockeyPuck} from "react-icons/fa";
 
 import './Navbar.css';
@@ -10,6 +10,14 @@ function Navbar() {
   const {currentUser, dispatch} = useContext(AuthContext);
   const team = currentUser.team;
   const navigate = useNavigate();
+
+  const [contextUpdate, setContextUpdate] = useState(false);
+  useEffect(() => {
+    setContextUpdate(!contextUpdate);
+  }, [currentUser])
+
+  console.log(currentUser);
+
 
   const goToReceiver = (link) => {
     navigate(link);
@@ -58,8 +66,8 @@ function Navbar() {
       </div>
       <nav class="menu">
         <div class="drawer">
-          <Dropdown>
-            <Dropdown.Toggle variant="outline-light" id="dropdown-basic">
+          <Dropdown className='rightElement'>
+            <Dropdown.Toggle className='toggle' id="dropdown-basic">
               Menu
             </Dropdown.Toggle>
             <Dropdown.Menu>
@@ -68,8 +76,8 @@ function Navbar() {
               <Dropdown.Item onClick={() => (goToReceiver('/roster'))}>Roster</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-          <Dropdown>
-            <Dropdown.Toggle variant="outline-light" id="dropdown-basic">
+          <Dropdown className='rightElement'>
+            <Dropdown.Toggle className='toggle' id="dropdown-basic">
               {currentUser.username}
             </Dropdown.Toggle>
             <Dropdown.Menu>

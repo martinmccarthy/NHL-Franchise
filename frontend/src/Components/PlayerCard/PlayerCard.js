@@ -6,7 +6,7 @@ function PlayerCard(props) {
     function getOverallColor() {
         var ovr = player.overall;
         
-        if(ovr >= 90) return {backgroundColor: "blue"};
+        if(ovr >= 86) return {backgroundColor: "blue"};
         if(ovr >= 80) return {backgroundColor: "gold"};
         if(ovr >= 70) return {backgroundColor: "grey"};
         if(ovr >= 60) return {backgroundColor: "brown"};
