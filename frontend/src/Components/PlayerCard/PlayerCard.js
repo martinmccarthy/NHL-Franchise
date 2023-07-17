@@ -3,6 +3,9 @@ import './PlayerCard.css';
 
 function PlayerCard(props) {
     var player = props.player;
+    if(props.style !== undefined) {
+        var params = props.style;
+    }
     function getOverallColor() {
         var ovr = player.overall;
         
@@ -29,14 +32,16 @@ function PlayerCard(props) {
     function getTeamGradient () {
         let primaryColors = [hexToRgbA(player.team.colors[0], 1), hexToRgbA(player.team.colors[1], 1)]
         var style = {
-          color: '#fff',
-          backgroundColor: '#f4f1de',
-          background: `linear-gradient(to bottom, ${primaryColors.join(", 75%, ")})`,
-          cursor: 'pointer',
-          textAlign: 'center',
-          border: 'none',
-          backgroundSize: '300% 100%',
-          boxShadow: `0 1px 20px 0 ${hexToRgbA('#3d405b', .4)}`
+            color: '#fff',
+            backgroundColor: '#f4f1de',
+            background: `linear-gradient(to bottom, ${primaryColors.join(", 75%, ")})`,
+            cursor: 'pointer',
+            textAlign: 'center',
+            border: 'none',
+            backgroundSize: '300% 100%',
+            boxShadow: `0 1px 20px 0 ${hexToRgbA('#3d405b', .4)}`,
+            height: (params !== undefined) ? params.height : "300px",
+            width: (params !== undefined) ? params.width : "250px"
         }
         return style;
     }
@@ -48,7 +53,7 @@ function PlayerCard(props) {
             </div>
             <div className="player-overall" style={getOverallColor()}>{player.overall}</div>
             <div className="player-details">
-                <div className="player-name">{player.name} • {player.positions[0]}</div>
+                <div className="player-name">{player.name}{props.style === undefined && `• ${player.positions[0]}`}</div>
             </div>
         </div>
     )

@@ -29,7 +29,7 @@
   }
 
   .goalies {
-    width: calc(100% - 10px);
+    width: calc(50% - 10px);
     background-color: #f4f8ff;
   }
 

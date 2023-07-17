@@ -7,7 +7,7 @@ import { Col, Container, Modal, Row } from 'react-bootstrap';
 import "bootstrap/dist/css/bootstrap.min.css";
 import PlayerCard from '../PlayerCard/PlayerCard';
 import { AuthContext } from '../../context/AuthContext';
-import RosterDisplay from '../RosterDisplay/RosterDisplay';
+import RosterDisplay from '../RosterManagement/RosterDisplay';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../db/firebase';
 import { calculateDefenseRating, calculateForwardRating, calculateGoalieRating, calculateTeamRating } from '../util';
