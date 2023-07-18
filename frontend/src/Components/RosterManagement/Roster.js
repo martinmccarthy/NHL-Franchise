@@ -4,9 +4,11 @@ import "./RosterDisplay.css"
 import Navbar from "../Navbar/Navbar";
 import PlayerCard from "../PlayerCard/PlayerCard";
 import { Modal } from "react-bootstrap";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../db/firebase";
 
 function Roster() {
-    const {currentUser} = useContext(AuthContext);
+    const {currentUser, dispatch} = useContext(AuthContext);
     const team = currentUser.team;
 
     const [forwards, setForwards] = useState([]);
@@ -19,7 +21,10 @@ function Roster() {
 
     const [modalPlayer, setModalPlayer] = useState({name: 'Mathew Barzal', positions: ['C']});
     const [showSwapModal, setShowSwapModal] = useState(false);
-    const handleClose = () => {setShowSwapModal(false)};
+
+    const [benchPosition, setBenchPosition] = useState(undefined);
+
+    const handleClose = () => {setBenchPosition(undefined); setShowSwapModal(false)};
 
     useEffect(() => {
         function getForwards() {
@@ -88,6 +93,7 @@ function Roster() {
                     possibleSwaps.push(bench[i]);
                 }
             }
+            if(benchPosition === undefined) setBenchPosition('F');
         }
         else if(positions.includes("LD") || positions.includes("RD")) {
             for(let i = 0; i < bench.length; i++) {
@@ -95,6 +101,7 @@ function Roster() {
                     possibleSwaps.push(bench[i]);
                 }
             }
+            if(benchPosition === undefined) setBenchPosition('D');
         }
         else if(positions.includes("G")) {
             for(let i = 0; i < bench.length; i++) {
@@ -102,6 +109,7 @@ function Roster() {
                     possibleSwaps.push(bench[i]);
                 }
             }
+            if(benchPosition === undefined) setBenchPosition('G');
         }
 
         return possibleSwaps;
@@ -129,8 +137,48 @@ function Roster() {
         return returnArr;
     }
 
-    function swapLineup() {
+    function returnRosterIds(roster) {
+        var ids = [];
+        for(let i = 0; i < roster.length; i++) {
+            ids.push(roster[i].id);
+        }
+        return ids;
+    }
 
+    async function swapLineup(selectedPlayer) {
+        let tempLineup = currentUser.team.lineup;
+        if(modalPlayer.name === 'empty') {
+            tempLineup.push(selectedPlayer);
+            switch(benchPosition) {
+                case 'F':
+                    setEmptyForwards(emptyForwards - 1);
+                    break;
+                case 'D':
+                    setEmptyDefense(emptyDefense - 1);
+                    break;
+                case 'G':
+                    setEmptyGoalies(emptyGoalies - 1);
+                    break;
+                default: break;
+            }
+        }
+        else {
+            const lineupIndex = tempLineup.findIndex(player => player.id === modalPlayer.id);
+            tempLineup[lineupIndex] = selectedPlayer;
+        }
+
+        console.log(tempLineup);
+        var contextPayload = Object.assign({}, currentUser);
+        contextPayload.team = Object.assign({}, currentUser.team);
+        contextPayload.team.lineup = tempLineup;
+    
+        var dbPayload = Object.assign({}, currentUser);
+        dbPayload.team = Object.assign({}, currentUser.team);
+        dbPayload.team.lineup =  returnRosterIds(tempLineup);
+        var ref = doc(db, 'users', currentUser.id);
+        await updateDoc(ref, dbPayload);
+        dispatch({type: "LOGIN", payload:contextPayload});
+        handleClose();
     }
 
     function openSwapModal(player) {
@@ -198,8 +246,8 @@ function Roster() {
             </Modal.Header>
             <Modal.Body className="show-grid">
                 <div className="benchHolder" style={{marginInline: "10px"}}>
-                    {getBenchByPosition(modalPlayer).map(player => (
-                        <div className="bench">
+                    {showSwapModal && getBenchByPosition(modalPlayer).map(player => (
+                        <div className="bench" onClick={() => swapLineup(player)}>
                             <PlayerCard player={player} style={{height: "200px", width: "150px"}} />
                         </div>
                     ))}

@@ -29,7 +29,7 @@ function GameLanding() {
       setShowPlayerModal(true);
     }
 
-    function returnRosterIds(roster) {
+  function returnRosterIds(roster) {
       var ids = [];
       for(let i = 0; i < roster.length; i++) {
           ids.push(roster[i].id);
