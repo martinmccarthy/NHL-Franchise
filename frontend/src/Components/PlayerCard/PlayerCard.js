@@ -1,4 +1,3 @@
-import { getPlayerMugshot } from "../util";
 import './PlayerCard.css';
 
 function PlayerCard(props) {
@@ -6,6 +5,7 @@ function PlayerCard(props) {
     if(props.style !== undefined) {
         var params = props.style;
     }
+
     function getOverallColor() {
         var ovr = player.overall;
         
@@ -20,7 +20,7 @@ function PlayerCard(props) {
         var c;
         if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
             c= hex.substring(1).split('');
-            if(c.length== 3){
+            if(c.length === 3){
                 c= [c[0], c[0], c[1], c[1], c[2], c[2]];
             }
             c= '0x'+c.join('');
@@ -43,7 +43,20 @@ function PlayerCard(props) {
             height: (params !== undefined) ? params.height : "300px",
             width: (params !== undefined) ? params.width : "250px"
         }
+        style = checkArea(style);
         return style;
+    }
+
+    function checkArea(style) {
+        if(props.area === undefined) return style;
+        else if(props.area==='collection') {
+
+            return style;
+        }
+    }
+
+    async function checkIfCollected() {
+        
     }
 
     return(

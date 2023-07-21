@@ -11,8 +11,10 @@ import RosterDisplay from '../RosterManagement/RosterDisplay';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../db/firebase';
 import { calculateDefenseRating, calculateForwardRating, calculateGoalieRating, calculateTeamRating } from '../util';
+import { useNavigate } from 'react-router-dom';
 
 function GameLanding() {
+    const naviate = useNavigate();
     const {currentUser, dispatch} = useContext(AuthContext);
 
     const [showPlayerModal, setShowPlayerModal] = useState(false);
@@ -130,13 +132,13 @@ function getGoalies() {
           <div className="rosterDisplay">
             <RosterDisplay activatePlayerModal={activatePlayerModal} />
             <div className="gameplayNav">
-              <div className='gameplayElement'>
+              <div onClick={() => naviate('/roster')} className='gameplayElement'>
                 <p>Players</p>
               </div>
-              <div className='gameplayElement'>
+              <div onClick={() => naviate('/collect')} className='gameplayElement'>
                 <p>Collect</p>
               </div>
-              <div className='gameplayElement'>
+              <div onClick={() => naviate('/play')} className='gameplayElement'>
                 <p onClick={() => {}}>Play</p>
               </div>
             </div>

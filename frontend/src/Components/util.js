@@ -158,12 +158,6 @@ export async function getSchedule(selectedTeam) {
     });
 }
     
-export async function main() {
-    console.log('calling');
-    let teams = await getActiveTeams();
-    console.log(teams);
-}
-
 export function getMonthFromString(mon){
     var d = Date.parse(mon + "1, 2012");
     if(!isNaN(d)){
@@ -378,4 +372,33 @@ export async function queryPlayer(playerId) {
     }
 
     return null;
+}
+
+export async function queryPlayersByTeam(team) {
+    var allPlayers = [];
+    console.log(team)
+    var q = query(collection(db, 'players'), where('team.name', '==', team.name));
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        let player = doc.data();
+        player.id = doc.id;
+        allPlayers.push(player);
+    })
+
+    console.log(allPlayers);
+
+    return allPlayers;
+}
+
+export async function addCollectionToDB(collectionName, players) {
+    /*  This variable name may look weird, but it's just because the sets of
+        collecting players are called "Collections" and that's how they're stored
+        in the DB. Maybe a better name could be used but I don't see it as a big deal. */
+    const collectionsCollection = collection(db, 'collections');
+    const docRef = doc(collectionsCollection, collectionName);
+    const payload = {
+        players: players
+    }
+    setDoc(docRef, payload);
 }

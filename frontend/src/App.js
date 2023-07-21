@@ -16,12 +16,19 @@ import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 
 import './App.css';
+import Collection from './Components/Collections/Collections';
 
 function App() {
-  const {currentUser} = useContext(AuthContext);
+  const {dispatch, currentUser} = useContext(AuthContext);
 
   const RequireAuth = ({children}) => {
-    return currentUser ? (children) : <Navigate to="/login" />
+    if(currentUser === null) return <Navigate to="/login" />
+    const expirationTimestamp = currentUser.token.loginTime + currentUser.token.expiresIn * 1000; // Convert to milliseconds
+    if(expirationTimestamp <= Date.now()) {
+      dispatch('LOGOUT');
+      return <Navigate to="/login" />
+    }
+    return (children);
   }
 
   /* can be useful to redirect back to home page */
@@ -56,6 +63,11 @@ function App() {
         <Route path='/play' element={
           <RequireAuth>
             <Play />
+          </RequireAuth>
+        }/>
+        <Route path='/collect' element={
+          <RequireAuth>
+            <Collection />
           </RequireAuth>
         }/>
         <Route path='/setup' element={<Setup />} />

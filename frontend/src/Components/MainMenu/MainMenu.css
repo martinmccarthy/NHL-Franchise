@@ -25,62 +25,9 @@ html, body {
   
 }
 
-.logos {
-  display: flex;
-  width: 90%;
-  height: 80vh;
-  place-items: center;
-  text-align: center;
-  background: linear-gradient(112.1deg, #f2cc8f 11.4%, #e07a5f 70.2%);
-  border-radius: 4em;
-  padding: 1em;
-}
-
 .topPlayers {
   list-style: none;
   margin: .25em;
-}
-
-.icons{
-  list-style: none;
-}
-.icons li{
-  height: 5em;
-  width: 5em;
-  display: inline-block;
-  margin: 0 10px;
-  cursor: pointer;
-  position: relative;
-}
-
-.icons li:before{
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  z-index: -1;
-  border-radius: 10%;
-  transition: all 0.3s ease-in;
-}
-
-.icons li:hover:before{
-  transform: rotate(360deg);
-  border-radius: 100%;
-}
-
-.imageContainer {
-  position: relative;
-}
-
-.icons img {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 50%;
-  transform: translate(-50%, 50%);
-  object-fit: contain;
 }
 
 .container {

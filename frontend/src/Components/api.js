@@ -1,6 +1,7 @@
 import {collection, addDoc} from 'firebase/firestore';
 import { db } from '../db/firebase';
 
+
 export async function signUp(user, team) {
     const userData = {
         email: user.email,
@@ -15,4 +16,3 @@ export async function signUp(user, team) {
         console.error(err);
     })
 }
-

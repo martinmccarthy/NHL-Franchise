@@ -66,8 +66,6 @@ function Roster() {
             setGoalies(tempGoalies);
         }
 
-        console.log(emptyForwards, emptyDefense, emptyGoalies);
-
         getForwards();
         getDefense();
         getGoalies();
@@ -84,7 +82,6 @@ function Roster() {
 
     function getBenchByPosition(player) {
         let positions = player.positions;
-        console.log(positions);
         let bench = getBench();
         let possibleSwaps = [];
         if(positions.includes("LW") || positions.includes("RW") || positions.includes("C")) {
@@ -133,7 +130,6 @@ function Roster() {
             }
         }
 
-        console.log(returnArr);
         return returnArr;
     }
 
@@ -167,14 +163,15 @@ function Roster() {
             tempLineup[lineupIndex] = selectedPlayer;
         }
 
-        console.log(tempLineup);
         var contextPayload = Object.assign({}, currentUser);
         contextPayload.team = Object.assign({}, currentUser.team);
         contextPayload.team.lineup = tempLineup;
     
         var dbPayload = Object.assign({}, currentUser);
         dbPayload.team = Object.assign({}, currentUser.team);
+        dbPayload.team.roster = returnRosterIds(dbPayload.team.roster);
         dbPayload.team.lineup =  returnRosterIds(tempLineup);
+        console.log('payload', dbPayload);
         var ref = doc(db, 'users', currentUser.id);
         await updateDoc(ref, dbPayload);
         dispatch({type: "LOGIN", payload:contextPayload});

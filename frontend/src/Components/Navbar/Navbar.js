@@ -16,9 +16,6 @@ function Navbar() {
     setContextUpdate(!contextUpdate);
   }, [currentUser])
 
-  console.log(currentUser);
-
-
   const goToReceiver = (link) => {
     navigate(link);
   }

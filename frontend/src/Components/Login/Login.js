@@ -32,12 +32,15 @@ function Login() {
 
         signInWithEmailAndPassword(auth, email, password)
         .then(async (userCredential) => {
+            console.log(userCredential);
             const uid = userCredential.user.uid;
 
             let user = await getDoc(doc(collection(db, 'users'), uid));
 
             let payload = user.data();
             payload.id = uid;
+            payload.token = userCredential._tokenResponse;
+            payload.token.loginTime = Date.now();
             /*  To avoid continuously querying the DB for user players we 
                 just query them all on login and store them into local storage.
                 This can be a bit of a pain to manage because of the difference
@@ -48,17 +51,74 @@ function Login() {
                 let id = payload.team.roster[i];
                 payload.team.roster[i] = await queryPlayer(id);
                 payload.team.roster[i].id = id;
-                let inLineup = payload.team.lineup.findIndex(id);
+                let inLineup = payload.team.lineup.indexOf(id);
                 if(inLineup > -1) {
                     tempLineup.push(payload.team.roster[i]);
                 }
             }
             payload.team.lineup = tempLineup;
-
+            console.log(payload);
             dispatch({type: "LOGIN", payload:payload});
             navigate('/app');
         })
         .catch((error) => {
+            console.error(error);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            /*  I should adjust this with better messages based on the code, but as
+                of right now I'm focused on other things. */
+            setErrorMsg(errorCode + " " + errorMessage);
+        })
+    }
+
+    /*  This function is used when I accidentally store players in the object form
+        instead of ID in the DB.  */
+    async function debugLogin(e) {
+        e.preventDefault();
+        if(email.length === 0) {
+            setErrorMsg('Email is a required field.')
+            return;
+        }
+        if(password.length === 0) {
+            setErrorMsg('Password is a required field.')
+            return;
+        }
+
+        signInWithEmailAndPassword(auth, email, password)
+        .then(async (userCredential) => {
+            console.log(userCredential);
+            const uid = userCredential.user.uid;
+
+            let user = await getDoc(doc(collection(db, 'users'), uid));
+
+            let payload = user.data();
+            payload.id = uid;
+            payload.token = userCredential._tokenResponse;
+            payload.token.loginTime = Date.now();
+            /*  To avoid continuously querying the DB for user players we 
+                just query them all on login and store them into local storage.
+                This can be a bit of a pain to manage because of the difference
+                between storing in the DB and stroing locally, but maybe I can
+                look into references with Firebase. */
+            let tempLineup = [];
+            console.log(payload);
+            for(let i = 0; i < payload.team.roster.length; i++) {
+                let id = payload.team.roster[i].id;
+                console.log(id);
+                payload.team.roster[i] = await queryPlayer(id);
+                payload.team.roster[i].id = id;
+                let inLineup = payload.team.lineup.indexOf(id);
+                if(inLineup > -1) {
+                    tempLineup.push(payload.team.roster[i]);
+                }
+            }
+            payload.team.lineup = tempLineup;
+            console.log(payload);
+            dispatch({type: "LOGIN", payload:payload});
+            navigate('/app');
+        })
+        .catch((error) => {
+            console.error(error);
             const errorCode = error.code;
             const errorMessage = error.message;
             /*  I should adjust this with better messages based on the code, but as
