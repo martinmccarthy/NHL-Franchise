@@ -5,7 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { collection, doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import './Login.css'
-import { queryPlayer } from "../util";
+import { queryAllPlayersOnRoster, queryPlayer } from "../util";
 
 function Login() {
     const [errorMsg, setErrorMsg] = useState('');
@@ -47,10 +47,11 @@ function Login() {
                 between storing in the DB and stroing locally, but maybe I can
                 look into references with Firebase. */
             let tempLineup = [];
+            payload.team.roster = await queryAllPlayersOnRoster(payload.team.roster);
             for(let i = 0; i < payload.team.roster.length; i++) {
-                let id = payload.team.roster[i];
-                payload.team.roster[i] = await queryPlayer(id);
-                payload.team.roster[i].id = id;
+                let id = payload.team.roster[i].id;
+                // payload.team.roster[i] = await queryPlayer(id);
+                // payload.team.roster[i].id = id;
                 let inLineup = payload.team.lineup.indexOf(id);
                 if(inLineup > -1) {
                     tempLineup.push(payload.team.roster[i]);

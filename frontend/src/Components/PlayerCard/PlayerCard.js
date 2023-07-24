@@ -44,25 +44,35 @@ function PlayerCard(props) {
             width: (params !== undefined) ? params.width : "250px"
         }
         style = checkArea(style);
+        console.log(style);
         return style;
     }
 
     function checkArea(style) {
+        console.log(props);
         if(props.area === undefined) return style;
         else if(props.area==='collection') {
-
-            return style;
+            if(props.style.isCollected) {
+                return style;
+            }
+            else {
+                style.backgroundColor = 'Grey';
+                delete(style.background);
+            }
         }
+
+        return style;
     }
 
-    async function checkIfCollected() {
-        
+    function checkIfCollected() {
+        if(props.area !== 'collection' || props.style.isCollected) return {filter:'none'};
+        else return {filter: 'grayscale(100%)'}
     }
 
     return(
         <div className="player-card" style={getTeamGradient()}>
             <div className="player-image-container">
-                <img src={player.image} alt={player.name} className="player-image" />
+                <img style={checkIfCollected()} src={player.image} alt={player.name} className="player-image" />
             </div>
             <div className="player-overall" style={getOverallColor()}>{player.overall}</div>
             <div className="player-details">

@@ -46,6 +46,7 @@ function MainMenu() {
   const handleClose = () => setConfirmStart(false);  
 
   const handleSubmit = (e) => {
+    'submitting';
     e.preventDefault();
     console.log(teamName);
     console.log(teamAbbr);
@@ -97,7 +98,8 @@ function MainMenu() {
     }
   }
 
-  function checkStart() {
+  function checkStart(e) {
+    e.preventDefault();
     if(teamName.length < 1) {
       setErrorMsg('Team name is required.')
       return;
@@ -164,7 +166,7 @@ function MainMenu() {
             <div className="colorHolder">
              <CompactPicker required onChange={setSecondary}/>
             </div>
-            <button style={{margin: "15px"}} onClick={() => checkStart()}>Submit</button>
+            <button style={{margin: "15px"}} onClick={checkStart}>Submit</button>
             <span style={{color: "red"}}>{errorMsg}</span>
           </form>
           
@@ -179,7 +181,7 @@ function MainMenu() {
               <div className="colorBlock" style={getPrimaryStyle()}>Primary</div>
               <div className="colorBlock" style={getSecondaryStyle()}>Secondary</div>
             </div>
-            <button onClick={handleSubmit}>Get Started!</button> 
+            <button onClick={() => handleSubmit()}>Get Started!</button> 
           </div>
         </Modal.Body>
         <Modal.Footer>

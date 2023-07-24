@@ -88,7 +88,7 @@ function Collection() {
                 <h1>{selectedTeam ? selectedTeam.name: ''}</h1>
             </Modal.Header>
             <Modal.Body>
-                <TeamCollection team={selectedTeam}/>
+                <TeamCollection collectionName={selectedTeam ? selectedTeam.name + ' Live Series' : ''} team={selectedTeam}/>
             </Modal.Body>
         </Modal>
     </div>)
