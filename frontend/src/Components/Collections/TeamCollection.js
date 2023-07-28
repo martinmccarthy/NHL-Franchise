@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import PlayerCard from "../PlayerCard/PlayerCard";
-import { queryPlayersByTeam, updateUser } from "../util";
+import { queryPlayersByCollection, queryPlayersByTeam, updateUser } from "../util";
 import { collection, doc, getDoc, where, setDoc } from "firebase/firestore";
 import { db } from "../../db/firebase";
 import { AuthContext } from "../../context/AuthContext";
+import { Modal } from "react-bootstrap";
 
 
 function TeamCollection(props) {
@@ -13,6 +14,7 @@ function TeamCollection(props) {
     const [roster, setRoster] = useState([]);
     const [collectionData, setCollectionData] = useState([]);
     const [changedState, setChangedState] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(undefined);
 
     useEffect(() => {
         getRoster();
@@ -35,6 +37,8 @@ function TeamCollection(props) {
 
         setCollectionData(collections[collectionIndex].players);
     }
+
+
 
     async function getRoster() {
         let tempRoster = await queryPlayersByTeam(team);
@@ -71,46 +75,68 @@ function TeamCollection(props) {
     async function collectPlayer(player) {
         console.log(player);
         console.log(currentUser.team.roster);
-        let userRoster = currentUser.team.roster;
-        const index = userRoster.findIndex(userPlayer => userPlayer.id === player.id);
-        if(index < 0) return;
-        else {
-            console.log('is in');
-            // add player to collection
-            console.log(collectionData)
-            if(collectionData.indexOf(player.id) > 0) return;
-            let tempCollectionData = collectionData;
-            tempCollectionData.push(player.id);
-            setCollectionData(tempCollectionData);
-            let collectionName = team.name + ' Live Series'
-            let currentCollection = {
-                name: collectionName,
-                players: tempCollectionData
-            }
-            var dbPayload = Object.assign({}, currentUser);
-            dbPayload.team = Object.assign({}, currentUser.team);
-            dbPayload.team.roster = returnRosterIds(dbPayload.team.roster);
-            dbPayload.team.lineup =  returnRosterIds(dbPayload.team.lineup);
-            const collectionIndex = dbPayload.collections.findIndex(collection => collection.name === collectionName);
-            dbPayload.collections[collectionIndex] = currentCollection;
-            updateUser(dbPayload, currentUser.id);
+
+        console.log('is in');
+        // add player to collection
+        console.log(collectionData)
+        if(collectionData.indexOf(player.id) > 0) return;
+        let tempCollectionData = collectionData;
+        tempCollectionData.push(player.id);
+        setCollectionData(tempCollectionData);
+        let collectionName = team.name + ' Live Series'
+        let currentCollection = {
+            name: collectionName,
+            players: tempCollectionData
         }
+        var dbPayload = Object.assign({}, currentUser);
+        dbPayload.team = Object.assign({}, currentUser.team);
+        dbPayload.team.roster = returnRosterIds(dbPayload.team.roster);
+        dbPayload.team.lineup =  returnRosterIds(dbPayload.team.lineup);
+        const collectionIndex = dbPayload.collections.findIndex(collection => collection.name === collectionName);
+        dbPayload.collections[collectionIndex] = currentCollection;
+        updateUser(dbPayload, currentUser.id);
         setChangedState(!changedState);
+
+        finishCollection();
+        handleClose();
     }
 
-    function finishCollection() {
+    async function finishCollection() {
+        let collectionName = team.name + ' Live Series'
+        let player = await queryPlayersByCollection(collectionName);
+        console.log(player)
         if(collectionData.length === roster.length) {
             console.log('all collected');
         }
     }
 
+    function handlePlayerSelect(player) {
+        let userRoster = currentUser.team.roster;
+        const index = userRoster.findIndex(userPlayer => userPlayer.id === player.id);
+        if(index < 0) return;
+        if(checkIfCollected(player) === true) return;
+        setSelectedPlayer(player);
+    }
+    function handleClose() {
+        setSelectedPlayer(undefined);
+    }
+
     return(
         <div className="players">
             {roster.map((player) => (
-                <div className="playerContainer" onClick={() => collectPlayer(player)}>
+                <div className="playerContainer" onClick={() => handlePlayerSelect(player)}>
                     <PlayerCard player={player} area={'collection'} style={{width: '150px', height:'200px', isCollected: checkIfCollected(player)}}/>
                 </div>
             ))}
+            <Modal show={selectedPlayer !== undefined} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <h1>{selectedPlayer ? selectedPlayer.name: ''}</h1>
+                </Modal.Header>
+                <Modal.Body>
+                    <h1>Selecting this player will remove the ability to sell them on the market. Would you like to confirm this?</h1>
+                    <button onClick={() => collectPlayer(selectedPlayer)}>Confirm</button>
+                </Modal.Body>
+            </Modal>
         </div>
     )
 }

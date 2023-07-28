@@ -3,7 +3,7 @@ import axios from 'axios';
 import {players} from "../Roster_JSON/players";
 import jsonData from "../Roster_JSON/teams.json"
 import {players as apiPlayers} from "@nhl-api/players";
-import {addDoc, collection, doc, setDoc, query, where, getDocs, getDoc, documentId} from "firebase/firestore"
+import {collection, doc, setDoc, query, where, getDocs, getDoc, documentId, updateDoc} from "firebase/firestore"
 import { db } from "../db/firebase";
     
 /* checkGameLocation simply checks to see if the game is home or away and returns that, it's here
@@ -425,4 +425,34 @@ export async function updateUser(payload, uid) {
     const userCollection = collection(db, 'users');
     const docRef = doc(userCollection, uid);
     setDoc(docRef, payload)
+}
+
+export async function updateAllPlayers() {
+    const data = {
+        collectionCard: false
+    }
+    let allPlayers = await getDocs(collection(db, "players"));
+    allPlayers.forEach(document => {
+        // var player = doc.data();
+        // console.log(player);
+        // player.id = doc.id;
+        // allPlayers.push(player);
+        let id = document.id;
+        const coll = collection(db, 'players')
+        const docRef = doc(coll, id);
+        updateDoc(docRef, data);
+    })
+}
+
+export async function queryPlayersByCollection(collectionName) {
+    var q = query(collection(db, 'players'), where('team.name', '==', collectionName));
+    const querySnapshot = await getDocs(q);
+    var player;
+    querySnapshot.forEach(document => {
+        console.log(document);
+        player = document.data();
+        console.log(player);
+        player.id = document.id;
+    });
+    return player;
 }

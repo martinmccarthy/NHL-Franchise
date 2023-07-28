@@ -2,9 +2,9 @@ import {FaHockeyPuck} from "react-icons/fa";
 
 function Pack(props) {
     return(
-        <div className="pack" onClick={() => {props.purchasePack(500, 5)}}>
-            <h1>Standard Pack</h1>
-            <h3>500 <FaHockeyPuck /></h3>
+        <div className="pack" onClick={() => {props.purchasePack(props.price, props.size)}}>
+            <h1>{props.name}</h1>
+            <h3>{props.price} <FaHockeyPuck /></h3>
         </div>
     )
 }

@@ -50,6 +50,11 @@ function Login() {
             payload.team.roster = await queryAllPlayersOnRoster(payload.team.roster);
             for(let i = 0; i < payload.team.roster.length; i++) {
                 let id = payload.team.roster[i].id;
+                if(tempLineup.findIndex(player => player.name === payload.team.roster[i].name) > -1) {
+                    continue; 
+                    /*  if the player is already in the lineup we don't want to push them again.
+                        this can happen if there are duplicate cards in a players inventory. */
+                }
                 // payload.team.roster[i] = await queryPlayer(id);
                 // payload.team.roster[i].id = id;
                 let inLineup = payload.team.lineup.indexOf(id);

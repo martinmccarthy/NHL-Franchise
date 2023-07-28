@@ -14,6 +14,8 @@ function Store() {
 
     const {currentUser, dispatch} = useContext(AuthContext);
 
+    console.log('opened players: ', openedPlayers);
+
     function getRandomInt(min, max) {
         var range = max - min + 1;
         var byteArrayLength = Math.ceil(Math.log2(range) / 8); // Calculate the number of bytes needed based on the range
@@ -36,7 +38,7 @@ function Store() {
     }
           
     async function openPack(packLength) {
-        const players = await getDocs(collection(db, "players"));
+        const players = await getDocs(query(collection(db, "players"), where("collectionCard", "==", false)));
         var allPlayers = [];
         players.forEach(doc => {
             var player = doc.data();
@@ -51,8 +53,19 @@ function Store() {
             tempUser.team.roster.push(allPlayers[random]);
         }
 
+        console.log('packed players', packedPlayers);
+
         setOpenedPlayers(packedPlayers);
         return tempUser;
+    }
+
+
+    function returnRosterIds(roster) {
+        var ids = [];
+        for(let i = 0; i < roster.length; i++) {
+            ids.push(roster[i].id);
+        }
+        return ids;
     }
 
     async function purchasePack(packPrice, packLength) {
@@ -61,7 +74,6 @@ function Store() {
         var updatedUser = await openPack(packLength);
         pucks -= packPrice;
         updatedUser.pucks = pucks;
-        console.log(updatedUser);
         let ids = [];
         for(let i = 0; i < updatedUser.team.roster.length; i++) {
             ids.push(updatedUser.team.roster[i].id)
@@ -69,8 +81,7 @@ function Store() {
         var dbPayload = Object.assign({}, updatedUser);
         dbPayload.team = Object.assign({}, updatedUser.team);
         dbPayload.team.roster = ids;
-        console.log('payload sent to database: ', dbPayload);
-        console.log('payload sent to local: ', updatedUser)
+        dbPayload.team.lineup = returnRosterIds(dbPayload.team.lineup);
         var ref = doc(db, 'users', currentUser.id);
         await updateDoc(ref, dbPayload);
         dispatch({type: "LOGIN", payload:updatedUser});
@@ -79,7 +90,9 @@ function Store() {
     return(
         <div>
             <Navbar />
-            <Pack purchasePack={purchasePack} />
+            <Pack purchasePack={purchasePack} price={500} size={5} name={'Standard Pack'} />
+            <Pack purchasePack={purchasePack} price={500} size={100} name={'Jumbo Pack'} />
+
             {openedPlayers.length > 0 && <div className="openedPlayers">
                 {openedPlayers.map(player => (
                     <div className="playerCardContainer">
